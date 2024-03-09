@@ -7,8 +7,8 @@ var OAuthCode = function(authUri, redirectUri) {
       var pollOAuth   = window.setInterval(function() {
         try {
           //console.log(win.document.URL)
-          if ( win.document.URL.indexOf(redirectUri) != -1 ||
-               win.document.URL.indexOf('highvolumesms.com') != -1 ) {
+          if ( win.document.URL.indexOf(redirectUri) != -1 ) {
+            // || win.document.URL.indexOf('highvolumesms.com') != -1 ) {
             window.clearInterval(pollOAuth);
             win.close();
             window.setTimeout(function() {
