@@ -11,8 +11,7 @@ function User(id) {
   this.userId = id;
   this.extensionId = 0;
   this.accountId = 0;
-  this.adminUser = false
-  this.monitor = false
+
   this.userEmail = "" // for feedback only
   this.userName = ""
   this.subscriptionId = ""
@@ -72,13 +71,7 @@ var engine = User.prototype = {
         if (extensionId){
           this.extensionId = extensionId
           req.session.extensionId = extensionId;
-          var admins = process.env.ADMINS.split(',')
-          for (var adminId of admins){
-            if (this.extensionId == adminId){
-              this.monitor = true
-              break
-            }
-          }
+
           //thisUser.deleteAllRegisteredWebHookSubscriptions()
 
           var p = await this.rc_platform.getPlatform(this.extensionId)
