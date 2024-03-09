@@ -791,7 +791,7 @@ var engine = User.prototype = {
     logout: async function(callback){
       console.log("LOGOUT FUNC")
       // delete subscription
-      await this.deleteSubscription()
+      //await this.deleteSubscription()
       var p = await this.rc_platform.getPlatform(this.extensionId)
       if (p)
           await p.logout()
