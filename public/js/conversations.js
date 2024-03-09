@@ -46,6 +46,8 @@ function init(){
 
   $( "#fromdatepicker" ).datepicker('setDate', new Date(past30Days));
   $( "#todatepicker" ).datepicker('setDate', new Date());
+
+  readMessageStore("")
 }
 
 function setElementsHeight(){
@@ -204,9 +206,13 @@ function readMessageStore(token){
       return
   }
 
-  var configs = {}
-  configs['dateFrom'] = dateFromStr
-  configs['dateTo'] = dateToStr
+  var configs = {
+    dateFrom: dateFromStr,
+    dateTo: dateToStr,
+    perPage: $('#page-size').val()
+  }
+  //configs['dateFrom'] = dateFromStr
+  //configs['dateTo'] = dateToStr
   //console.log(`from: ${dateFromStr}`)
   //console.log(`to: ${dateToStr}`)
   if (token != ""){
@@ -300,6 +306,16 @@ function createConversationsList(totalMsg){
     var customer = convoGroup.conversations.find( o => o.status == "New" || o.status == "Ignored" || o.status == "Replied")
     if (customer)
       name += ` - ${customer.authorName}`
+
+    if (convoGroup.conversations.length == 0){
+        console.log("not likely")
+    }else if (convoGroup.conversations.length == 1){
+        name += ` (${creationTime(convoGroup.conversations[0].creationTime)})`
+    }else{
+        var lastMSg = convoGroup.conversations.length - 1
+        name += ` (${creationTime(convoGroup.conversations[lastMSg].creationTime)}`
+        name += ` - ${creationTime(convoGroup.conversations[0].creationTime)})`
+    }
 
     html += `<div id='${convoGroup.conversationId}' class='recipient-item' onclick='showConversation("${convoGroup.conversationId}", "${name}")'>`
     if (avatarUri)
@@ -434,6 +450,15 @@ function validateRicipientNumber(number){
     return false
   }
   return true
+}
+
+function creationTime(creationTime){
+  var date = new Date(creationTime)
+  var timestamp = date.getTime() //- timeOffset
+  var createdDate = new Date (timestamp)
+  let dateOptions = { month: 'short', day: 'numeric' }
+  var createdDateStr = createdDate.toLocaleDateString("en-US", dateOptions)
+  return createdDateStr
 }
 
 function logout(){

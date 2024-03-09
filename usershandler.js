@@ -240,7 +240,7 @@ var engine = User.prototype = {
         //dateFrom: req.body.dateFrom,
         //dateTo: req.body.dateTo,
         source: JSON.parse(req.body.sourceId),
-        perPage: 30
+        perPage: parseInt(req.body.perPage)
       }
       /*
       if (req.body.direction != "Both")
