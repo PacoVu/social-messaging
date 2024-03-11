@@ -360,7 +360,7 @@ function showConversation(selectedConvo, name){
     var html = '<div class="chat-container"><ul class="chat-box chatContainerScroll">'
     dateStr = ""
     //var totalMessage = 0
-    if (recipient == "all"){
+    if (selectedConvo == "all"){
       $("#message-input").hide()
       conversationHeight = 50
       setElementsHeight()
