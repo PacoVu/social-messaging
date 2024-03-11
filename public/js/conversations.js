@@ -416,13 +416,12 @@ function createConversationItem(item, conversation){
   if (item.status != "UserReply"){
     line += '<li class="chat-left">'
     line += `<div class="chat-avatar chat-name">${item.authorName}<br>${timeStr}</div>`
-    line += `<div class="chat-text">${msg}</div>`
 
     if (item.contentUri != ""){
-      console.log("contenUri", item.contentUri)
-      line += `<br><div class="chat-text"><img src="${item.contentUri}"</img></div>`
-    }
-
+      //console.log("contenUri", item.contentUri)
+      line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
+    }else
+      line += `<div class="chat-text">${msg}</div>`
   }else{ // Outbound
     line += '<li class="chat-right">'
     line += `<div class="chat-text">${msg}</div>`

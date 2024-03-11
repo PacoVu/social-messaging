@@ -311,6 +311,15 @@ var engine = User.prototype = {
           if (record.type == "Photo" || record.type == "Album"){
             contentUri = record.fbLink
           }
+        }else if (record.sourceType == "WhatsApp"){
+          if (record.attachments.length > 0){
+            //console.log(record)
+            for (var attachment of record.attachments){
+              if (attachment.contentType == 'image/jpeg'){
+                contentUri = attachment.uri
+              }
+            }
+          }
         }
         var item = {
           id: record.id,
