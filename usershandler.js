@@ -271,8 +271,8 @@ var engine = User.prototype = {
             status: "ok",
             result: conversations,
             pageTokens: {
-              nextPage: "",
-              previousPage: ""
+              nextPageToken: "",
+              previousPageToken: ""
             }
           }
           console.log("paging", jsonObj.paging)

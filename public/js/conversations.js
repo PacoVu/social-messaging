@@ -291,14 +291,20 @@ function processResult(){
       var link = $("#next-block");
       link.attr("href",`javascript:readMessageStore("${pageTokens.nextPageToken}")`);
       link.css('display', 'inline');
-    }
-    /*
-    if (pageTokens.previousPageToken != ""){
-      ;
     }else{
-      ;
+      var link = $("#next-block");
+      link.attr("href", "#");
+      link.css('display', 'none');
     }
-    */
+    if (pageTokens.previousPageToken != ""){
+      var link = $("#prev-block");
+      link.attr("href",`javascript:readMessageStore("${pageTokens.previousPageToken}")`);
+      link.css('display', 'inline');
+    }else{
+      var link = $("#prev-block");
+      link.attr("href", "#");
+      link.css('display', 'none');
+    }
   }else {
     $("#next-page").hide()
   }
