@@ -402,7 +402,9 @@ function showConversation(recipient, name){
     $("#conversation").html(html)
     $("#conversation").animate({ scrollTop: $("#conversation")[0].scrollHeight}, 100);
   }else{
+    $("#conversation-title").html("")
     $("#conversation").html("No content")
+    $("#message-input").hide()
   }
 }
 
