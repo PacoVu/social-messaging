@@ -187,7 +187,7 @@ var engine = User.prototype = {
             }
           var resp = await p.post(endpoint, bodyParams)
           var jsonObj = await resp.json()
-          console.log(jsonObj)
+          //console.log(jsonObj)
           var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
           var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
           var message = {
@@ -202,7 +202,7 @@ var engine = User.prototype = {
                   creatorId: jsonObj.creatorId,
                   agentName: (agent) ? agent.name : "",
                   synchronizationStatus: jsonObj.synchronizationStatus,
-                  status: jsonObj.synchronizationStatus,
+                  status: jsonObj.status,
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,

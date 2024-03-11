@@ -4,8 +4,8 @@ var timeOffset = 0
 var dateStr = ""
 var lastVisited = new Date().getTime() - 604800000
 //var selectedRecipient = undefined
-var pageToken = undefined
-var currentSelectedItem = "0"
+var pageTokens = undefined
+var currentSelectedItem = "all"
 var currentSelectedContact = ""
 var pollingTimer = null
 var contactList = []
@@ -98,12 +98,12 @@ function sendTextMessage(message){
     return alert("please select a message to reply")
   }
   params.message = message
-  console.log(params)
+  //console.log(params)
   var url = "send-message"
   var posting = $.post( url, params );
   posting.done(function( res ) {
     if (res.status == "ok"){
-      console.log(res)
+      //console.log(res)
       /*
       var msgIndex = messageList.findIndex(o => o.id === msg.id)
       if (msgIndex < 0)
@@ -112,7 +112,7 @@ function sendTextMessage(message){
         messageList[msgIndex] = msg
       */
       var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
-      convoGroup.conversations.push(res.message)
+      convoGroup.conversations.unshift(res.message)
       /*
       if (msgIndex < 0)
         messageList.splice(0, 0, res.message);
@@ -244,7 +244,8 @@ function readMessageStore(token){
       $("#search-number").focus()
       messageList = res.result
       //console.log(messageList)
-      processResult(res.pageTokens)
+      pageTokens = res.pageTokens
+      processResult()
       //pollingTimer = window.setTimeout(function(){
       //  pollNewMessages()
       //},3000)
@@ -267,7 +268,7 @@ function readMessageStore(token){
 }
 
 // show inbound and outbound message count
-function processResult(pageTokens){
+function processResult(){
   var totalInbound = 0
   var totalOutbound = 0
   recipientPhoneNumbers = []
@@ -279,16 +280,25 @@ function processResult(pageTokens){
   }
   //var exist = recipientPhoneNumbers.find(o => o.number === currentSelectedItem)
   //if (exist == undefined)
-  currentSelectedItem = "all"
+  //currentSelectedItem = "all"
   //$("#left_pane").show()
   //$("#downloads").show()
 
   createConversationsList(totalMsg)
   console.log("pageTokens", pageTokens)
-  if (pageTokens.nextPageToken != ""){
-    var link = $("#next-block");
-    link.attr("href",`javascript:readMessageStore("${pageTokens.nextPageToken}")`);
-    link.css('display', 'inline');
+  if (pageTokens != undefined){
+    if (pageTokens.nextPageToken != ""){
+      var link = $("#next-block");
+      link.attr("href",`javascript:readMessageStore("${pageTokens.nextPageToken}")`);
+      link.css('display', 'inline');
+    }
+    /*
+    if (pageTokens.previousPageToken != ""){
+      ;
+    }else{
+      ;
+    }
+    */
   }else {
     $("#next-page").hide()
   }
@@ -328,7 +338,7 @@ function createConversationsList(totalMsg){
 }
 
 function showConversation(recipient, name){
-  //console.log(recipient)
+  console.log("recipient", recipient)
   //console.log(name)
   //var id = parseInt(currentSelectedItem)
   $(`#${currentSelectedItem}`).removeClass("active");
