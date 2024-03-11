@@ -129,7 +129,7 @@ var engine = User.prototype = {
       try{
         let endpoint = "/cx/social-messaging/v1/identities"
         let params = {
-          //sourceId: "65c3fdd9527bf900079cefcb",
+          sourceId: "65c3fdd9527bf900079cefcb",
           //identityGroupId: ""
           //userId: "63317565004"
         }
@@ -299,7 +299,7 @@ var engine = User.prototype = {
       }
     },
     processSMResponse: function (jsonObj){
-      //console.log(jsonObj)
+      //console.log(JSON.stringify(jsonObj))
       var conversationGroups = []
       var conversations = []
 

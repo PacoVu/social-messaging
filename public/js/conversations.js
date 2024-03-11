@@ -347,14 +347,14 @@ function createConversationsList(totalMsg){
   showConversation(currentSelectedItem, name)
 }
 
-function showConversation(recipient, name){
-  console.log("recipient", recipient)
+function showConversation(selectedConvo, name){
+  console.log("recipient", selectedConvo)
   //console.log(name)
   //var id = parseInt(currentSelectedItem)
   $(`#${currentSelectedItem}`).removeClass("active");
   //id = parseInt(recipient)
-  $(`#${recipient}`).addClass("active");
-  currentSelectedItem = recipient
+  $(`#${selectedConvo}`).addClass("active");
+  currentSelectedItem = selectedConvo
 
   if (messageList.length){
     var html = '<div class="chat-container"><ul class="chat-box chatContainerScroll">'
@@ -367,14 +367,21 @@ function showConversation(recipient, name){
       $("#conversation-title").html(`All conversations`)
       //totalMessage = messageList.length
       params.to = ""
+
       var maxLen = messageList.length - 1
       for (var i=maxLen; i>=0; i--){
         var convoGroup = messageList[i]
-        for (var msg of convoGroup.conversations){
+        console.log("convoGroup", convoGroup)
+        var convoLen = convoGroup.conversations.length - 1
+        for (var n=convoLen; n>=0; n--){
+          var msg = convoGroup.conversations[n]
+          if (msg.status == "New"){
+            params.to = msg.id
+          }
           html += createConversationItem(msg, false)
         }
       }
-    }else {
+    }else { // display selected conversation
       $(`#${currentSelectedItem}-count`).remove()
       conversationHeight = 312
       setElementsHeight()
@@ -441,9 +448,7 @@ function createConversationItem(item, conversation){
     if (item.avatarUri != ""){
       line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
     }
-
     //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
-
   }
 
   line += '</li>'
@@ -470,13 +475,6 @@ function downloadMessageStore(format){
   });
 }
 
-function validateRicipientNumber(number){
-  if (number[0] != "+"){
-    alert("Please enter recipient phone number with the plus (+) sign in front of country code!")
-    return false
-  }
-  return true
-}
 
 function creationTime(creationTime){
   var date = new Date(creationTime)
