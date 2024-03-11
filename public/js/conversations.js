@@ -6,7 +6,7 @@ var lastVisited = new Date().getTime() - 604800000
 //var selectedRecipient = undefined
 var pageTokens = undefined
 var currentSelectedItem = "all"
-var currentSelectedContact = ""
+var currentSelectedchannel = ""
 var pollingTimer = null
 var contactList = []
 var params = {
@@ -232,6 +232,10 @@ function readMessageStore(token){
     configs['sourceId'] = `["${channels[0].id}"]`
   }
   //alert(configs.sourceId)
+  if (currentSelectedchannel != configs.sourceId){
+    currentSelectedchannel = configs.sourceId
+    currentSelectedItem = "all"
+  }
   params.sourceId = configs.sourceId
   messageList = []
   var readingAni = "<img src='./img/logging.gif' style='width:50px;height:50px;display: block;margin:auto;'></img>"
@@ -351,8 +355,8 @@ function showConversation(recipient, name){
   //id = parseInt(recipient)
   $(`#${recipient}`).addClass("active");
   currentSelectedItem = recipient
-  //currentSelectedContact = name
-  if (messageList != undefined){
+
+  if (messageList.length){
     var html = '<div class="chat-container"><ul class="chat-box chatContainerScroll">'
     dateStr = ""
     //var totalMessage = 0
@@ -381,6 +385,9 @@ function showConversation(recipient, name){
       $("#conversation-title").html(title)
 
       var convoGroup = messageList.find(o => o.conversationId == currentSelectedItem)
+      if (!convoGroup){
+        convoGroup = messageList[0]
+      }
       var maxLen = convoGroup.conversations.length - 1
       for (var i=maxLen; i>=0; i--){
         var msg = convoGroup.conversations[i]
@@ -394,6 +401,8 @@ function showConversation(recipient, name){
     html += "</ul></div>"
     $("#conversation").html(html)
     $("#conversation").animate({ scrollTop: $("#conversation")[0].scrollHeight}, 100);
+  }else{
+    $("#conversation").html("No content")
   }
 }
 
