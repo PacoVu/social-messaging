@@ -129,7 +129,7 @@ var engine = User.prototype = {
       try{
         let endpoint = "/cx/social-messaging/v1/identities"
         let params = {
-          sourceId: "65c3fdd9527bf900079cefcb",
+          //sourceId: "65c3fdd9527bf900079cefcb",
           //identityGroupId: ""
           //userId: "63317565004"
         }
@@ -198,7 +198,7 @@ var engine = User.prototype = {
                   authorIdentityId: jsonObj.authorIdentityId,
                   body: jsonObj.body,
                   contentUri: "",
-                  avatarUri: identity.avatarUri,
+                  avatarUri: (identity != null) ? identity.avatarUri : "",
                   creatorId: jsonObj.creatorId,
                   agentName: (agent) ? agent.name : "",
                   synchronizationStatus: jsonObj.synchronizationStatus,
@@ -305,6 +305,7 @@ var engine = User.prototype = {
 
       for (var record of jsonObj.records){
         var identity = this.identities.find( o => o.id == record.authorIdentityId)
+
         var agent = this.agentsList.find( o => o.userId == record.creatorId)
         var contentUri = ""
         if (record.sourceType == "Facebook"){
@@ -329,7 +330,7 @@ var engine = User.prototype = {
           authorName: (identity != null) ? identity.displayName : "Unknown",
           body: record.body,
           contentUri: contentUri,
-          avatarUri: identity.avatarUri,
+          avatarUri: (identity != null) ? identity.avatarUri : "",
           creatorId: record.creatorId,
           agentName: (agent) ? agent.name : "",
           status: record.status,
