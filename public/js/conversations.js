@@ -371,11 +371,10 @@ function showConversation(selectedConvo, name){
       var maxLen = messageList.length - 1
       for (var i=maxLen; i>=0; i--){
         var convoGroup = messageList[i]
-        console.log("convoGroup", convoGroup)
         var convoLen = convoGroup.conversations.length - 1
         for (var n=convoLen; n>=0; n--){
           var msg = convoGroup.conversations[n]
-          if (msg.status == "New"){
+          if (msg.status == "New" || msg.status == "Replied"){
             params.to = msg.id
           }
           html += createConversationItem(msg, false)
@@ -387,6 +386,7 @@ function showConversation(selectedConvo, name){
       setElementsHeight()
       //params.to = recipient //selectedRecipient
       params.message = ""
+      params.to = ""
       $("#message-input").show()
       var title = `<span>${name}</span>`
       $("#conversation-title").html(title)
@@ -398,7 +398,7 @@ function showConversation(selectedConvo, name){
       var maxLen = convoGroup.conversations.length - 1
       for (var i=maxLen; i>=0; i--){
         var msg = convoGroup.conversations[i]
-        if (msg.status == "New"){
+        if (msg.status == "New" || msg.status == "Replied"){
           params.to = msg.id
         }
         html += createConversationItem(msg, false)
@@ -408,6 +408,12 @@ function showConversation(selectedConvo, name){
     html += "</ul></div>"
     $("#conversation").html(html)
     $("#conversation").animate({ scrollTop: $("#conversation")[0].scrollHeight}, 100);
+    if (params.to == ""){
+      // disable the input for now. Should be enable for initiating a new message!
+      $("#message-input").hide()
+    }else{
+      $("#message-input").show()
+    }
   }else{
     $("#conversation-title").html("")
     $("#conversation").html("No content")
