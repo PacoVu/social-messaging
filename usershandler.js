@@ -625,6 +625,7 @@ var engine = User.prototype = {
             console.log("Done! No more next page.")
             console.log("done analytics")
             this.analytics.analyticsData.task = "Completed"
+            /*
             console.log(this.analytics.analyticsData)
             for (var channel of this.analytics.analyticsData.channels){
               console.log("customer new messages:", channel.customerNewMsgIds.length)
@@ -632,6 +633,7 @@ var engine = User.prototype = {
               console.log("Agent's new messages:", channel.agentNewMsgIds.length)
               console.log("Agent's replied messages:", channel.agentRepliedMsgIds.length)
             }
+            */
           }
         } catch (e) {
           console.log("_readMessageStoreForAnalytics() failed", e.message)
