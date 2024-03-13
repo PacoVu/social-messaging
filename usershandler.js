@@ -24,6 +24,11 @@ function User(id) {
       sourceType: "WhatsApp"
     },
     {
+      name: "GPS HVAC Services",
+      id:"65f1fabc80c3190007ab0fd9",
+      sourceType: "WhatsApp"
+    },
+    {
       name: "Celebrations Cupcake Twitter",
       id:"643e937543995c0007df2854",
       sourceType: "Twitter"
