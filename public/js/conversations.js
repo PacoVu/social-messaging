@@ -431,16 +431,7 @@ function createConversationItem(item, conversation){
   }
 
   var msg = (item.body != null) ? item.body.replace(/\r?\n/g, "<br>") : ""
-  if (item.status != "UserReply"){
-    line += '<li class="chat-left">'
-    line += `<div class="chat-avatar chat-name">${item.authorName}<br>${timeStr}</div>`
-
-    if (item.contentUri != ""){
-      //console.log("contenUri", item.contentUri)
-      line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
-    }else
-      line += `<div class="chat-text">${msg}</div>`
-  }else{ // Outbound
+  if (item.status == "UserInitiated" || item.status == "UserReply"){ // Outbound
     line += '<li class="chat-right">'
     line += `<div class="chat-text">${msg}</div>`
     line += `<div class="chat-avatar chat-name">${timeStr}<br>${item.agentName}</div>`
@@ -449,6 +440,15 @@ function createConversationItem(item, conversation){
       line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
     }
     //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
+  }else{
+    line += '<li class="chat-left">'
+    line += `<div class="chat-avatar chat-name">${item.authorName}<br>${timeStr}</div>`
+
+    if (item.contentUri != ""){
+      //console.log("contenUri", item.contentUri)
+      line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
+    }else
+      line += `<div class="chat-text">${msg}</div>`
   }
 
   line += '</li>'

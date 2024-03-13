@@ -181,6 +181,12 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].getMessagingAnalytics(req, res)
   },
+  pollAnalyticsResult: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].pollAnalyticsResult(res)
+  },
   downloadAnalytics: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)

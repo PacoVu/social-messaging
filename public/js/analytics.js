@@ -53,77 +53,6 @@ function changeAnalyticsBase(elm){
   }
 }
 
-function readCampaigns(){
-  var url = "/read-campaigns"
-  var getting = $.get( url );
-  getting.done(function( res ) {
-    if (res.status == "ok"){
-      campaignList = res.campaigns
-      var campaigns = ''
-      //alert(campaignList)
-      for (var c of campaignList){
-        if (c.type == "tollfree") continue
-        campaigns += `<option value="${c.batchId}">${c.campaignName}</option>`
-      }
-      $("#my-campaigns").html(campaigns)
-      $('#my-campaigns').selectpicker('refresh');
-    }else if (res.status == "error"){
-      _alert(res.message)
-    }else{
-      if (res.message)
-        _alert(res.message)
-      else
-        _alert("You have been logged out. Please login again.")
-      window.setTimeout(function(){
-        window.location.href = "/relogin"
-      },8000)
-    }
-  });
-}
-function readMessageStoreCampaign(){
-  var campaigns = $("#my-campaigns").val()
-  var configs = {
-    mode: 'campaigns',
-    campaignIds: JSON.stringify(campaigns)
-  }
-
-  $("#processing").show()
-  $("#options-bar").hide()
-  $("#by_direction").html("")
-  $("#by_status").html("")
-  $("#by_cost").html("")
-  var readingAni = "<img src='./img/logging.gif' style='width:50px;height:50px;display: block;margin:auto;'></img>"
-  $("#total-by-direction").html(readingAni)
-  $("#total-by-cost").html(readingAni)
-  $("#total-by-status").html(readingAni)
-  $("#downloads").hide()
-  var url = "create-messaging-analytics"
-  var posting = $.post( url, configs );
-  posting.done(function( res ) {
-    if (res.status == "ok") {
-      $("#total-title").html(`Messaging statistics of selected campaigns`)
-      pollingTimer = window.setTimeout(function(){
-          pollAnalyticsResult()
-      },3000)
-    }else if (res.status == "error"){
-      $("#processing").hide()
-      $("#by_direction").html("")
-      _alert(res.message)
-    }else{
-      $("#processing").hide()
-      if (res.message)
-        _alert(res.message)
-      else
-        _alert("You have been logged out. Please login again.")
-      window.setTimeout(function(){
-        window.location.href = "/relogin"
-      },8000)
-    }
-  });
-  posting.fail(function(response){
-    alert(response.statusText);
-  });
-}
 
 function readMessageStore(){
   var dateFromStr = ""
@@ -136,13 +65,13 @@ function readMessageStore(){
   tempDate = new Date($("#todatepicker").val() + "T23:59:59.999Z")
   tempTime = tempDate.getTime()
   dateToStr = new Date(tempTime).toISOString()
-  var fromNumber = $('#my-numbers').val()
+  var fromChannels = $('#my-channels').val()
   var configs = {
     mode: 'date',
     dateFrom: dateFromStr,
     dateTo: dateToStr,
     timeOffset: timeOffset,
-    phoneNumbers: `["${fromNumber}"]`
+    fromChannels: fromChannels //`["${fromChannels}"]`
   }
   $("#processing").show()
   $("#options-bar").hide()
@@ -154,12 +83,11 @@ function readMessageStore(){
   $("#analysis-title").html("")
   $("#analysis").html("")
   $("#graph-column").html("")
-  $("#text-column").html("")
 
   var readingAni = "<img src='./img/logging.gif' style='width:50px;height:50px;display: block;margin:auto;'></img>"
   $("#total-by-direction").html(readingAni)
-  $("#total-by-cost").html(readingAni)
-  $("#total-by-status").html(readingAni)
+  //$("#total-by-cost").html(readingAni)
+  //$("#total-by-status").html(readingAni)
   $("#downloads").hide()
   var url = "create-messaging-analytics"
   var posting = $.post( url, configs );
@@ -204,10 +132,9 @@ function pollAnalyticsResult(){
           pollAnalyticsResult()
         },5000)
       }else{
-        if (res.result.task == "Completed")
-          $("#downloads").show()
+        //if (res.result.task == "Completed")
+        //  $("#downloads").show()
         $("#processing").hide()
-        //console.log(JSON.stringify(analyticsData))
         displayAnalytics()
       }
     }else{
@@ -239,47 +166,35 @@ function displayAnalytics(){
   }else{
     displayAnalyticsTotalTable()
   }
-  if ($("#display").val() == "failure-analytics"){
-    $("#sub-category").hide()
-    $("#graphs").hide()
-    $("#failure-category").show()
-    $("#failure-analytics").show()
-    displayFailureAnalyticsDetails()
-  }else{
-    $("#sub-category").show()
-    $("#graphs").show()
-    $("#failure-category").hide()
-    $("#failure-analytics").hide()
-    displayAnalyticsType()
-  }
+  // if ($("#display").val() == "failure-analytics"){
+  //   $("#sub-category").hide()
+  //   $("#graphs").hide()
+  //   $("#failure-category").show()
+  //   $("#failure-analytics").show()
+  //   displayFailureAnalyticsDetails()
+  // }else{
+  //   $("#sub-category").show()
+  //   $("#graphs").show()
+  //   $("#failure-category").hide()
+  //   $("#failure-analytics").hide()
+  //   displayAnalyticsType()
+  // }
+  $("#sub-category").show()
+  $("#graphs").show()
+  displayAnalyticsType()
 }
 
 function displayAnalyticsType(){
-  var type = $("#analytics-type").val()
   var breakout = $("#display").val()
   if (mode == "graphics"){
-    if (type == "message-count"){
-      displayMessageDirection(breakout)
-    }else if (type == "message-status"){
-      displayMessageStatus(breakout)
-    }else if (type == "message-cost"){
-      displayMessageCost(breakout)
-    }
+    displayMessageDirection(breakout)
   }else { // table
-    if (type == "message-count"){
-      displayMessageDirectionTable(breakout)
-    }else if (type == "message-status"){
-      displayMessageStatusTable(breakout)
-    }else if (type == "message-cost"){
-      displayMessageCostTable(breakout)
-    }
+    displayMessageDirectionTable(breakout)
   }
 }
 
 function displayAnalyticsTotal(){
   var direction_params = [[ 'Direction', '# messages', { role: "style" } ]];
-  var status_params = [[ 'Status', '# messages', { role: "style" } ]];
-  var cost_params = [[ 'Cost', 'USD', { role: "style" } ]];
 
   var item = [ "Outbound", analyticsData.outboundCount, '#178006' ]
   direction_params.push(item)
@@ -289,24 +204,7 @@ function displayAnalyticsTotal(){
   item = [ "Total", analyticsData.outboundCount + analyticsData.inboundCount, '#03918f' ]
   direction_params.push(item)
 
-  item = ["Succeeded", analyticsData.deliveredCount, "#0770a8"]
-  status_params.push(item)
-  item = ["Failed", analyticsData.sendingFailedCount + analyticsData.deliveryFailedCount, '#f04b3b']
-  status_params.push(item)
-  //item = ["Delivery failed", analyticsData.deliveryFailedCount, 'brown']
-  //status_params.push(item)
-
-  item = ["Outbound", parseFloat(analyticsData.sentMsgCost.toFixed(2)), '#178006']
-  cost_params.push(item)
-  item = ["Inbound", parseFloat(analyticsData.receivedMsgCost.toFixed(2)), '#1126ba']
-  cost_params.push(item)
-
-  item = ["Total", parseFloat(analyticsData.sentMsgCost.toFixed(2)) + parseFloat(analyticsData.receivedMsgCost.toFixed(2)), '#03918f']
-  cost_params.push(item)
-
   drawColumnChart(direction_params, "total-by-direction", '# Messages by direction', "# Messages")
-  drawColumnChart(cost_params, "total-by-cost", 'Cost by direction (USD)', "Cost")
-  drawColumnChart(status_params, "total-by-status", '# Outbound messages by status', "# Messages")
 }
 
 function displayAnalyticsTotalTable(){
@@ -315,7 +213,7 @@ function displayAnalyticsTotalTable(){
   byDirection += `<tr><td class='table-label'>Inbound</td><td>${formatNumber(analyticsData.inboundCount)}</td></tr>`
   byDirection += `<tr><td class='table-label'>Outbound</td><td>${formatNumber(analyticsData.outboundCount)}</td></tr>`
   byDirection += `<tr><td class='table-label'>Total</td><td>${formatNumber(analyticsData.outboundCount + analyticsData.inboundCount)}</td></tr></table>`
-
+/*
   var byStatus = `<div class='analytics-header'># Messages by status</div><table class='analytics-table'>`
   byStatus += "<tr><td class='table-label'>Status</td><td class='table-label'># Messages</td></tr>"
   byStatus += `<tr><td class='table-label'>Delivered</td><td>${formatNumber(analyticsData.deliveredCount)}</td></tr>`
@@ -331,10 +229,10 @@ function displayAnalyticsTotalTable(){
   byCost += `<tr><td class='table-label'>Inbound</td><td>${formatNumber(analyticsData.receivedMsgCost.toFixed(2))}</td></tr>`
   byCost += `<tr><td class='table-label'>Outbound</td><td>${formatNumber(analyticsData.sentMsgCost.toFixed(2))}</td></tr>`
   byCost += `<tr><td class='table-label'>Total</td><td>${formatNumber(totalCost.toFixed(2))}</td></tr></table>`
-
+*/
   $("#total-by-direction").html(byDirection)
-  $("#total-by-cost").html(byCost)
-  $("#total-by-status").html(byStatus)
+  //$("#total-by-cost").html(byCost)
+  //$("#total-by-status").html(byStatus)
 }
 
 function writeTitle(type, title){
@@ -394,12 +292,12 @@ function displayMessageDirection(breakout){
   var color = ['#178006']
   if (breakout == "monthly"){
     var monthlyData = analyticsData.months
-    var direction_params = [['Month', 'Succeeded Outbound', 'Failed Outbound','Inbound']]
-    var response_params = [['Month', 'Response rate (Inbound / Succeeded Outbound)']];
+    var direction_params = [['Month', 'Success Outbound', 'Failed Outbound','Inbound']]
+    var response_params = [['Month', 'Response rate (Inbound / Success Outbound)']];
     for (var i=monthlyData.length-1; i>=0; i--) {
       var m =  monthlyData[i]
       //var item = [ convertMonth(m.month), m.outboundCount, m.inboundCount ]
-      var item = [ convertMonth(m.month), m.deliveredCount, m.sendingFailedCount+m.deliveryFailedCount, m.inboundCount ]
+      var item = [ convertMonth(m.month), m.deliveredCount, m.sendingFailedCount, m.inboundCount ]
       direction_params.push(item)
       var rate = 0.0
       if (m.deliveredCount > 0)
@@ -407,29 +305,29 @@ function displayMessageDirection(breakout){
       item = [convertMonth(m.month), parseFloat(formatFloatNumber(rate))]
       response_params.push(item)
     }
-    writeTitle('statistics-title', '# Messages by direction (per month)')
+    writeTitle('statistics-title', '# Messages by direction')
     drawComboChart(direction_params, "statistics", 'Messages by direction (per month)', 'Messages', 'Month', colors)
-    writeTitle('analysis-title', 'Response rate (per month) <a class="" href="#" onclick="showRateInfo(0);return false;">&#9432;</a>')
-    drawComboChart(response_params, "analysis", 'Response rate (per month)', '%', 'Month', color)
-  }else if (breakout == "bynumber"){
-    var serviceNumberData = analyticsData.phoneNumbers
-    var direction_params = [[ 'Service Number', 'Succeeded Outbound', 'Failed Outbound', 'Inbound' ]];
-    var response_params = [['Month', 'Response rate (Inbound / Succeeded Outbound)']];
-    for (var m of serviceNumberData) {
-      var serviceNumber = formatPhoneNumber(m.number,false)
+    writeTitle('analysis-title', 'Response rate per month')
+    drawComboChart(response_params, "analysis", 'Response rate', '%', 'Month', color)
+  }else if (breakout == "bychannel"){
+    var channels = analyticsData.channels
+    var direction_params = [[ 'Channel', 'Success Outbound', 'Failed Outbound', 'Inbound' ]];
+    var response_params = [['Month', 'Response rate (Inbound / Success Outbound)']];
+    for (var channel of channels) {
+      var channelName = channel.channelName
       //var item = [ serviceNumber, m.outboundCount, m.inboundCount ]
-      var item = [ serviceNumber, m.deliveredCount, m.sendingFailedCount+m.deliveryFailedCount, m.inboundCount ]
+      var item = [ channelName, channel.deliveredCount, channel.sendingFailedCount, channel.inboundCount ]
       direction_params.push(item)
       var rate = 0.0
-      if (m.deliveredCount > 0)
-        rate = (m.inboundCount / m.deliveredCount) * 100
-      item = [serviceNumber, parseFloat(formatFloatNumber(rate))]
+      if (channel.deliveredCount > 0)
+        rate = (channel.inboundCount / channel.deliveredCount) * 100
+      item = [channelName, parseFloat(formatFloatNumber(rate))]
       response_params.push(item)
     }
-    writeTitle('statistics-title', '# Messages by direction (per service number)')
-    drawComboChart(direction_params, "statistics", 'Messages by direction (per service number)', 'Messages', 'Phone Number', colors)
-    writeTitle('analysis-title', 'Response rate (per service number) <a href="#" onclick="showRateInfo(0);return false;">&#9432;</a>')
-    drawComboChart(response_params, "analysis", 'Response rate (per service number)', '%', 'Phone Number', color)
+    writeTitle('statistics-title', '# Messages by direction')
+    drawComboChart(direction_params, "statistics", 'Messages by direction', 'Messages', 'Channel', colors)
+    writeTitle('analysis-title', 'Response rate')
+    drawComboChart(response_params, "analysis", 'Response rate', '%', 'Channel', color)
   }
 }
 
@@ -438,7 +336,7 @@ function displayMessageDirection_combined(breakout){
   var color = ['#178006','#1126ba']
   if (breakout == "monthly"){
     var monthlyData = analyticsData.months
-    var direction_params = [['Month', 'Succeeded Outbound', 'Failed Outbound','Inbound']]
+    var direction_params = [['Month', 'Success Outbound', 'Failed Outbound','Inbound']]
     var response_params = [['Month', 'Response rate', 'Delivery rate']];
     for (var i=monthlyData.length-1; i>=0; i--) {
       var m =  monthlyData[i]
@@ -455,7 +353,7 @@ function displayMessageDirection_combined(breakout){
     drawComboChart(direction_params, "statistics", 'Messages by direction (per month)', 'Messages', 'Month', colors)
     writeTitle('analysis-title', 'Response rate (per month) <a class="" href="#" onclick="showRateInfo(0);return false;">&#9432;</a>')
     drawComboChart(response_params, "analysis", 'Response rate (per month)', '%', 'Month', color)
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     var serviceNumberData = analyticsData.phoneNumbers
     var direction_params = [[ 'Service Number', 'Outbound', 'Inbound' ]];
     var response_params = [['Month', 'Response rate']];
@@ -482,6 +380,7 @@ function displayMessageDirectionTable(breakout){
   var dHeader = ""
   var dReceived = "<tr><td class='table-label'>Inbound messages</td>"
   var dSent = "<tr><td class='table-label'>Outbound messages</td>"
+  var dSentFailed = "<tr><td class='table-label'>Outbound Failed messages</td>"
   var dTotal = "<tr><td class='table-label'>Total messages</td>"
   var dRate = "<tr><td class='table-label'>Response rate</td>"
 
@@ -494,34 +393,36 @@ function displayMessageDirectionTable(breakout){
       // direction
       dReceived += `<td>${m.inboundCount}</td>`
       dSent += `<td>${m.outboundCount}</td>`
+      dSentFailed += `<td>${m.sendingFailedCount}</td>`
       dTotal += `<td>${m.outboundCount + m.inboundCount}</td>`
       var rate = 0.0
       if (m.outboundCount > 0)
         rate = (m.inboundCount / m.outboundCount) * 100
       dRate += `<td>${formatFloatNumber(rate)} %</td>`
     }
-    writeTitle('statistics-title', '# Messages by direction (per month)')
-  }else if (breakout == "bynumber"){
-    var dHeader = "<tr><td class='table-label'>Service Number</td>"
-    var serviceNumberData = analyticsData.phoneNumbers
-    for (var m of serviceNumberData) {
-      var serviceNumber = formatPhoneNumber(m.number,false)
-      dHeader += `<td class='table-data'>${serviceNumber}</td>`
+    writeTitle('statistics-title', '# Messages by direction per month')
+  }else if (breakout == "bychannel"){
+    var dHeader = "<tr><td class='table-label'>Channel</td>"
+
+    for (var channel of analyticsData.channels) {
+      dHeader += `<td class='table-data'>${channel.channelName}</td>`
       // direction
-      dReceived += `<td>${m.inboundCount}</td>`
-      dSent += `<td>${m.outboundCount}</td>`
-      dTotal += `<td>${m.outboundCount + m.inboundCount}</td>`
+      dReceived += `<td>${channel.inboundCount}</td>`
+      dSent += `<td>${channel.outboundCount}</td>`
+      dSentFailed += `<td>${channel.sendingFailedCount}</td>`
+      dTotal += `<td>${channel.outboundCount + channel.inboundCount}</td>`
       var rate = 0.0
-      if (m.outboundCount > 0)
-        rate = (m.inboundCount / m.outboundCount) * 100
+      if (channel.outboundCount > 0)
+        rate = (channel.inboundCount / channel.outboundCount) * 100
       dRate += `<td>${formatFloatNumber(rate)} %</td>`
     }
-    writeTitle('statistics-title', '# Messages by direction (per service number)')
+    writeTitle('statistics-title', '# Messages by direction per channel')
   }
 
   byDirection += `${dHeader}</tr>`
   byDirection += `${dReceived}</tr>`
   byDirection += `${dSent}</tr>`
+  byDirection += `${dSentFailed}</tr>`
   byDirection += `${dTotal}</tr>`
   byDirection += `${dRate}</tr>`
   byDirection += "</table>"
@@ -552,7 +453,7 @@ function displayMessageStatus(breakout){
     drawComboChart(status_params, "statistics", 'Outbound messages by status (per month)', 'Messages', 'Month', colors)
     writeTitle('analysis-title', 'Delivery rate (per month) <a href="#" onclick="showRateInfo(1);return false;">&#9432;</a>')
     drawComboChart(efficiency_params, "analysis", 'Delivery rate (per month)', '%', 'Month', color)
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     var serviceNumberData = analyticsData.phoneNumbers
     var status_params = [[ 'Service Number', 'Delivered', 'Failed' ]];
     var efficiency_params = [['service Number', 'Delivery rate']];
@@ -580,7 +481,7 @@ function displayMessageStatusTable(breakout){
   var byStatus = "<table class='analytics-table'>"
   var sSucceeded = "<tr><td class='table-label'>Delivered</td>"
   var sFailed = "<tr><td class='table-label'>Failed</td>"
-  var sSuccessRate = "<tr><td class='table-label'>Delivery rate</td>"
+  var sSucceededRate = "<tr><td class='table-label'>Delivery rate</td>"
 
   if (breakout == "monthly"){
     dHeader = "<tr><td class='table-label'>Month</td>"
@@ -596,7 +497,7 @@ function displayMessageStatusTable(breakout){
       sSuccessRate += `<td>${formatFloatNumber(rate)} %</td>`
     }
     writeTitle('statistics-title', '# Outbound messages by status (per month)')
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     dHeader = "<tr><td class='table-label'>Service Number</td>"
     var serviceNumberData = analyticsData.phoneNumbers
     for (var m of serviceNumberData) {
@@ -627,7 +528,7 @@ function displayMessageCost(breakout){
   var color = ['#178006']
   if (breakout == "monthly"){
     var monthlyData = analyticsData.months
-    var cost_params = [['Month', 'Succeeded Outbound', 'Failed Outbound', 'Inbound']];
+    var cost_params = [['Month', 'Success Outbound', 'Failed Outbound', 'Inbound']];
     var efficiency_params = [['Month', 'Efficiency rate']];
     for (var i=monthlyData.length-1; i>=0; i--) {
       var m =  monthlyData[i]
@@ -645,9 +546,9 @@ function displayMessageCost(breakout){
     drawComboChart(cost_params, "statistics", 'Cost by direction (per month)', 'USD', 'Month', colors)
     writeTitle('analysis-title', 'Outbound messaging cost efficiency (per month) <a href="#" onclick="showRateInfo(2);return false;">&#9432;</a>')
     drawComboChart(efficiency_params, "analysis", 'Outbound messaging cost efficiency (per month)', '%', 'Month', color)
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     var serviceNumberData = analyticsData.phoneNumbers
-    var cost_params = [[ 'Service Number', 'Succeeded Outbound', 'Failed Outbound', 'Inbound']];
+    var cost_params = [[ 'Channel', 'Success Outbound', 'Failed Outbound', 'Inbound']];
     var efficiency_params = [[ 'Service Number', 'Efficiency rate' ]];
     for (var m of serviceNumberData) {
       var serviceNumber = formatPhoneNumber(m.number,false)
@@ -676,7 +577,7 @@ function displayMessageCostTable(breakout){
   var cTotal = "<tr><td class='table-label'>Total Cost</td>"
 
   var byCostEfficiency = "<table class='analytics-table'>"
-  var eOutboundDelivered = "<tr><td class='table-label'>Cost of succeeded messages (USD)</td>"
+  var eOutboundDelivered = "<tr><td class='table-label'>Cost of Success messages (USD)</td>"
   var eOutboundFailed = "<tr><td class='table-label'>Cost of failed messages (USD)</td>"
   var eRate = "<tr><td class='table-label'>Efficiency rate</td>"
 
@@ -699,7 +600,7 @@ function displayMessageCostTable(breakout){
     }
     writeTitle('statistics-title', 'Cost by direction (USD per month)')
     writeTitle('analysis-title', 'Outbound messaging cost efficiency (per month)')
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     dHeader = "<tr><td class='table-label'>Service Number</td>"
     var serviceNumberData = analyticsData.phoneNumbers
     for (var m of serviceNumberData) {
@@ -1374,7 +1275,7 @@ function displayAnalyticsByMonths(){
   drawComboChart(status_params, "by_status", 'Monthly Message by status', 'Messages', 'Month', colors)
 }
 
-function displayAnalyticsByNumbers(){
+function displayAnalyticsbychannels(){
   var serviceNumberData = analyticsData.phoneNumbers
   var direction_params = [];
   var arr = [ 'Service Number', 'Inbound', 'Outbound' ];
@@ -1518,7 +1419,7 @@ function displayMessageCost(breakout){
     }
     drawComboChart(cost_params, "by_direction", 'Cost by direction (per month)', 'USD', 'Month', colors)
     drawComboChart(efficiency_params, "by_status", 'Messaging cost efficiency (per month)', '%', 'Month', color)
-  }else if (breakout == "bynumber"){
+  }else if (breakout == "bychannel"){
     var serviceNumberData = analyticsData.phoneNumbers
     var cost_params = [[ 'Service Number', 'Inbound', 'Outbound' ]];
     var efficiency_params = [[ 'Service Number', 'Efficient rate' ]];
@@ -1582,8 +1483,8 @@ function displayAnalytics(){
     if (display == "monthly")
       //displayAnalyticsByMonths()
       displayAnalyticsType()
-    else if (display == "bynumber")
-      //displayAnalyticsByNumbers()
+    else if (display == "bychannel")
+      //displayAnalyticsbychannels()
       displayAnalyticsType()
 
     else if (display == "hourly")
@@ -1602,8 +1503,8 @@ function displayAnalytics(){
     displayAnalyticsTotalTable()
     if (display == "monthly")
       displayAnalyticsByMonthsTable()
-    else if (display == "bynumber")
-      displayAnalyticsByNumbersTable()
+    else if (display == "bychannel")
+      displayAnalyticsbychannelsTable()
     else if (display == "failure-analytics")
         displayFailedAnalytics()
 
@@ -1730,7 +1631,7 @@ function displayAnalyticsByMonthsTable(){
   $("#analysis").html(byCost)
 }
 
-function displayAnalyticsByNumbersTable(){
+function displayAnalyticsbychannelsTable(){
   var byDirection = "<div class='analytics-header'># messages by direction</div><table class='analytics-table'>"
   var dHeader = "<tr><td class='table-label'>Phone number</td>"
   var dReceived = "<tr><td class='table-label'>Inbound</td>"

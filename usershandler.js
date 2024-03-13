@@ -16,6 +16,7 @@ function User(id) {
   this.userName = ""
   this.subscriptionId = ""
   this.rc_platform = new RCPlatform(id)
+  //this.analytics = new Analytics()
   this.connectedChannels = [
     {
       name: "GPS plumbing",
@@ -61,6 +62,25 @@ var engine = User.prototype = {
       res.render('main', {
         userName: this.getUserName(),
         channels: this.connectedChannels
+      })
+      return true
+    },
+    loadAnalyticsPage: async function(res){
+      //logger.writeLog(this.extensionId, `----- time: ${new Date().toISOString()} -----\r\nOpen Analytics page`)
+      var p = await this.rc_platform.getPlatform(this.extensionId)
+      if (!p){
+        logger.writeLog(this.extensionId, "Tokens expired => force relogin")
+        return false
+      }
+
+      if (!this.analytics){
+        this.analytics = new Analytics(this.connectedChannels, this.agentsList)
+      }
+
+      res.render('analytics', {
+        userName: this.getUserName(),
+        channels: this.connectedChannels
+        //assetsPath: process.env.ASSETS_PATH
       })
       return true
     },
@@ -554,98 +574,67 @@ var engine = User.prototype = {
     },
     getMessagingAnalytics: function (req, res){
       console.log("getMessagingAnalytics")
-      // REMOVE WHEN COMMIT
-      /*
-      if (this.analytics.analyticsData != undefined){
-        res.send({
-            status: "ok",
-            result: this.analytics.analyticsData
-        })
-        return
-      }
-      */
       this.analytics.resetAnalyticsData()
       res.send({
           status: "ok",
           result: this.analytics.analyticsData
       })
-
-      if (req.body.mode == 'date'){
-        var timeOffset = 0 //parseInt(req.body.timeOffset)
-        var ts = new Date(req.body.dateFrom).getTime()
-        var dateFrom = new Date(ts - timeOffset).toISOString()
-        ts = new Date(req.body.dateTo).getTime()
-        var dateTo = new Date(ts - timeOffset).toISOString()
-        var readParams = {
-          view: "Detailed",
-          dateFrom: dateFrom,
-          dateTo: dateTo,
-          perPage: 1000
-        }
-        var phoneNumbers = JSON.parse(req.body.phoneNumbers)
-        if (phoneNumbers[0] != "all")
-          readParams['phoneNumber'] = phoneNumbers
-
-        if (req.body.pageToken)
-            readParams['pageToken'] = ""
-
-        this._readMessageStoreForAnalytics(readParams, timeOffset)
-      }else{
-        var campaignIds = JSON.parse(req.body.campaignIds)
-        console.log(campaignIds)
-        this._readMessageStoreByCampaign(campaignIds, "", 0)
+      var queryParams = {
+        perPage: 50
       }
+      console.log(req.body)
+      if (req.body.fromChannels != 'all'){
+        queryParams['source'] = [req.body.fromChannels]
+      }
+      console.log(queryParams)
+      this._readMessageStoreForAnalytics(queryParams)
     },
-    _readMessageStoreForAnalytics: async function(readParams, timeOffset){
+    _readMessageStoreForAnalytics: async function(queryParams){
       console.log("_readMessageStoreForAnalytics")
-      var endpoint = "/restapi/v1.0/account/~/a2p-sms/messages"
       var p = await this.rc_platform.getPlatform(this.extensionId)
+      this.analytics.analyticsData.task = "Processing"
       if (p){
         try {
-          var resp = await p.get(endpoint, readParams)
-          var jsonObj = await resp.json()
-          //console.log(jsonObj)
-          for (var message of jsonObj.records){
-            this.analytics.analyzeMessage(message)
+          let endpoint = "/cx/social-messaging/v1/contents"
+          let params = {
+              perPage: 50
           }
-          //this.analyticsData.roundTheClock.sort(sortRoundTheClock)
-          //this.analyticsData.segmentCounts.sort(sortSegmentCount)
-          this.analytics.analyticsData.phoneNumbers.sort(sortbByNumber)
-          if (jsonObj.paging.hasOwnProperty("nextPageToken")){
-            this.analytics.analyticsData.task = "Processing"
-            var thisUser = this
-            setTimeout(function(){
-                readParams['pageToken'] = jsonObj.paging.nextPageToken
-                thisUser._readMessageStoreForAnalytics(readParams, timeOffset)
-            }, 1200)
+          /*
+          if (pageToken != ""){
+            queryParams['pageToken'] = pageToken
+          }
+          */
+          var resp = await p.get(endpoint, queryParams)
+          var jsonObj = await resp.json()
+          //console.log(JSON.stringify(jsonObj))
+
+          for (var record of jsonObj.records){
+            //console.log(record)
+            this.analytics.analyzeMessage(record)
+          }
+
+          //if (jsonObj.paging.hasOwnProperty('nextPageToken')) {
+          if (jsonObj.paging.nextPageToken != "") {
+            //var pageToken = jsonObj.paging.nextPageToken
+            queryParams['pageToken'] = jsonObj.paging.nextPageToken
+            // Make sure not to exceed the API rate limit of 40 API calls per minute
+            await sleep(1200)
+            console.log("Read content from the next page ...")
+            this._readMessageStoreForAnalytics(queryParams)
           }else{
-            // clean up
-            //console.log(this.analytics.analyticsData.failureAnalysis.contents.length)
-            var check = true
-            while (check){
-              var index = this.analytics.analyticsData.failureAnalysis.contents.findIndex(o => o.ignore == true)
-              if (index >= 0){
-                this.analytics.analyticsData.failureAnalysis.contents.splice(index, 1)
-                //console.log("REMOVED")
-              }else{
-                check = false
-              }
-            }
-            /*
-            console.log("AFTER CLEAN UP")
-            console.log(this.analytics.analyticsData.failureAnalysis.contents.length)
-            for (var item of this.analytics.analyticsData.failureAnalysis.contents){
-              console.log(item.spams)
-              console.log(item.nonspams)
-            }
-            */
-            //this.analyticsData.roundTheClock.sort(sortRoundTheClock)
-            //this.analyticsData.segmentCounts.sort(sortSegmentCount)
+            console.log("Done! No more next page.")
             console.log("done analytics")
             this.analytics.analyticsData.task = "Completed"
+            console.log(this.analytics.analyticsData)
+            for (var channel of this.analytics.analyticsData.channels){
+              console.log("customer new messages:", channel.customerNewMsgIds.length)
+              console.log("customer replied messages:", channel.customerRepliedMsgIds.length)
+              console.log("Agent's new messages:", channel.agentNewMsgIds.length)
+              console.log("Agent's replied messages:", channel.agentRepliedMsgIds.length)
+            }
           }
         } catch (e) {
-          console.log("_readMessageStoreForAnalytics()")
+          console.log("_readMessageStoreForAnalytics() failed", e.message)
           this.analytics.analyticsData.task = "Interrupted"
         }
       }else{
@@ -1091,4 +1080,8 @@ function sortSegmentCount(a,b) {
 
 function sortbByNumber(a,b) {
   return a.number - b.number;
+}
+
+const sleep = async (ms) => {
+  await new Promise(r => setTimeout(r, ms));
 }

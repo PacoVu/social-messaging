@@ -94,6 +94,23 @@ app.get ('/analytics', function (req, res) {
   }
 })
 
+app.post('/create-messaging-analytics', function (req, res) {
+  //console.log('getMessagingAnalytics')
+  if (req.session.extensionId != 0)
+    router.getMessagingAnalytics(req, res)
+  else{
+    res.render('index')
+  }
+})
+
+app.get("/poll-analytics-result", function (req, res) {
+  if (req.session.extensionId != 0)
+    router.pollAnalyticsResult(req, res)
+  else{
+    res.render('index')
+  }
+})
+
 app.get("/poll-new-messages", function (req, res) {
   if (req.session.extensionId != 0)
     router.pollNewMessages(req, res)
