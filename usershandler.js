@@ -187,6 +187,60 @@ var engine = User.prototype = {
         console.log(e.message)
       }
     },
+    initiateFBConversation: async function(req, res){
+      var body = req.body
+      var p = await this.rc_platform.getPlatform(this.extensionId)
+      if (p){
+        try{
+          let endpoint = `/cx/social-messaging/v1/contents`
+          console.log(endpoint)
+          var bodyParams = {
+              body: body.message,
+              autoSubmitted: true,
+              public: false,
+              sourceId: body.sourceId
+            }
+          var resp = await p.post(endpoint, bodyParams)
+          var jsonObj = await resp.json()
+          //console.log(jsonObj)
+          var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
+          var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
+          var message = {
+                  id: jsonObj.id,
+                  creationTime: jsonObj.creationTime,
+                  lastModifiedTime: jsonObj.lastModifiedTime,
+                  authorName: (identity != null) ? identity.displayName : "Unknown",
+                  authorIdentityId: jsonObj.authorIdentityId,
+                  body: jsonObj.body,
+                  contentUri: "",
+                  avatarUri: (identity != null) ? identity.avatarUri : "",
+                  creatorId: jsonObj.creatorId,
+                  agentName: (agent) ? agent.name : "",
+                  synchronizationStatus: jsonObj.synchronizationStatus,
+                  status: jsonObj.status,
+                  threadId: jsonObj.threadId,
+                  inReplyToContentId: jsonObj.inReplyToContentId,
+                  inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                }
+          res.send({
+              status:"ok",
+              message: message
+          })
+        }catch(e){
+          console.log(e.message)
+          res.send({
+              status:"error",
+              message: e.message
+          })
+        }
+      }else{
+        console.log("initiateFBConversation() - You have been logged out. Please login again.")
+        res.send({
+          status: "failed",
+          message: "You have been logged out. Please login again."
+        })
+      }
+    },
     sendMessage: async function(req, res){
       var body = req.body
       var p = await this.rc_platform.getPlatform(this.extensionId)
@@ -295,7 +349,7 @@ var engine = User.prototype = {
               previousPageToken: ""
             }
           }
-          console.log("paging", jsonObj.paging)
+          //console.log("paging", jsonObj.paging) P@ssw0rd+6592091212
           if (jsonObj.paging.hasOwnProperty("nextPageToken")){
               response.pageTokens.nextPageToken = jsonObj.paging.nextPageToken
           }
@@ -354,6 +408,7 @@ var engine = User.prototype = {
           creatorId: record.creatorId,
           agentName: (agent) ? agent.name : "",
           status: record.status,
+          synchronizationStatus: record.synchronizationStatus,
           threadId: record.threadId,
           inReplyToContentId: record.inReplyToContentId,
           inReplyToAuthorIdentityId: record.inReplyToAuthorIdentityId,

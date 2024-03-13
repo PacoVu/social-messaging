@@ -128,6 +128,15 @@ app.post('/read-message-store', function (req, res) {
   }
 })
 
+app.post('/initiate-fb-conversation', function (req, res) {
+  console.log('initiateFBConversation')
+  if (req.session.extensionId != 0)
+    router.initiateFBConversation(req, res)
+  else{
+    res.render('index')
+  }
+})
+
 
 app.get('/download-standard-message-report', function (req, res) {
   if (req.session.extensionId != 0)

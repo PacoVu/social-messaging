@@ -264,7 +264,7 @@ button:focus {
   max-width: 800px !important;
 }
 .warning{
-  color: orange;
+  color: orange !important;
 }
 .highlight {
   color: #BF6A0A;

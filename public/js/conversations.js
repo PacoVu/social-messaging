@@ -89,6 +89,30 @@ function readContacts(){
   });
 }
 
+function openInitiateMessage(){
+  var channels = JSON.parse(window.channels)
+  var channel = channels.find( o => o.id == currentSelectedchannel)
+  if (channel){
+    switch (channel.sourceType) {
+      case "WhatsApp":
+        openInitiateWAMessage(channel.id, channel.name)
+        break;
+      case "Twitter":
+
+        break;
+      case "LinkedIn":
+
+        break;
+      case "FaceBook":
+        openInitiateFBMessage(channel.id, channel.name)
+        break;
+      default:
+        break;
+
+    }
+  }
+}
+
 function sendTextMessage(message){
   if (message == ""){
     $("#send-text").focus()
@@ -224,16 +248,19 @@ function readMessageStore(token){
 
   configs['direction'] = $('#direction').val();
 
-  if ($('#my-channels').length > 0){
-    var fromChannel = $('#my-channels').val()
+  var fromChannel = $('#my-channels').val()
+  //if ($('#my-channels').length > 0){
+  if (fromChannel != ""){
+    //var fromChannel = $('#my-channels').val()
     configs['sourceId'] = `["${fromChannel}"]`
   }else{
-    var channels = JSON.parse(window.channels)
-    configs['sourceId'] = `["${channels[0].id}"]`
+    //var channels = JSON.parse(window.channels)
+    //configs['sourceId'] = `["${channels[0].id}"]`
+    return
   }
   //alert(configs.sourceId)
-  if (currentSelectedchannel != configs.sourceId){
-    currentSelectedchannel = configs.sourceId
+  if (currentSelectedchannel != fromChannel){
+    currentSelectedchannel = fromChannel
     currentSelectedItem = "all"
   }
   params.sourceId = configs.sourceId
@@ -348,7 +375,7 @@ function createConversationsList(totalMsg){
 }
 
 function showConversation(selectedConvo, name){
-  console.log("recipient", selectedConvo)
+  //console.log("recipient", selectedConvo)
   //console.log(name)
   //var id = parseInt(currentSelectedItem)
   $(`#${currentSelectedItem}`).removeClass("active");
@@ -403,17 +430,17 @@ function showConversation(selectedConvo, name){
         }
         html += createConversationItem(msg, false)
       }
+      if (params.to == ""){
+        // disable the input for now. Should be enable for initiating a new message!
+        $("#message-input").hide()
+      }else{
+        $("#message-input").show()
+      }
     }
     //$("#total").html(`${totalMessage} messages`)
     html += "</ul></div>"
     $("#conversation").html(html)
     $("#conversation").animate({ scrollTop: $("#conversation")[0].scrollHeight}, 100);
-    if (params.to == ""){
-      // disable the input for now. Should be enable for initiating a new message!
-      $("#message-input").hide()
-    }else{
-      $("#message-input").show()
-    }
   }else{
     $("#conversation-title").html("")
     $("#conversation").html("No content")
@@ -439,9 +466,13 @@ function createConversationItem(item, conversation){
   var msg = (item.body != null) ? item.body.replace(/\r?\n/g, "<br>") : ""
   if (item.status == "UserInitiated" || item.status == "UserReply"){ // Outbound
     line += '<li class="chat-right">'
-    line += `<div class="chat-text">${msg}</div>`
-    line += `<div class="chat-avatar chat-name">${timeStr}<br>${item.agentName}</div>`
-
+    if (item.synchronizationStatus == "Success"){
+      line += `<div class="chat-text">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">${timeStr}<br>${item.agentName}</div>`
+    }else if (item.synchronizationStatus == "ExportPending"){
+      line += `<div class="chat-text warning">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
+    }
     if (item.avatarUri != ""){
       line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
     }

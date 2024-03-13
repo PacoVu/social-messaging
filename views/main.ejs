@@ -59,7 +59,7 @@
   </div>
 
   <div id="hidden-div-new-conversation" style="display: none">
-    <form id="send_new_form">
+    <form id="send_new_wa_form">
       <div class="block_space">
         <span id="contacts-block" style="display: none;"><label class="" for="my-numbers">Contacts</label>
           <!--select id="contact-group" class="selectpicker filter-select" onchange="loadContactsFromGroup(this)" title="Select group" style="display: inline;width: 100px"></select-->
@@ -73,7 +73,18 @@
         <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
       </div-->
       <div class="block_space">
-        <textarea id="new-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
+        <textarea id="new-wa-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
+      </div>
+    </form>
+
+    <form id="send_new_fb_form">
+
+      <!--div class="block_space">
+        <label class="" for="my-numbers">To</label>
+        <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
+      </div-->
+      <div class="block_space">
+        <textarea id="new-fb-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
       </div>
     </form>
   </div>
@@ -131,12 +142,12 @@
           </div>
         </div>
         <hr style="margin: 2px !important;border: 2px solid white"></hr>
-        <!--
+
         <div class="block_space">
-          <input type="text" class="form-control search-input" style="display: inline;" placeholder="Search recipient" value="" id="search-number" onfocus="clearSearch(this)" oninput="searchRecipientNumber(this)"></input>
-          <input type="button" class="form-control" style="display: inline;width: 50px;" value="+" onclick="openSendNewText()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Send new text"></input>
+          <!--input type="text" class="form-control search-input" style="display: inline;" placeholder="Search recipient" value="" id="search-number" onfocus="clearSearch(this)" oninput="searchRecipientNumber(this)"></input-->
+          <input type="button" class="form-control" style="display: inline;width: 50px;" value="+" onclick="openInitiateMessage()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Initiate a new conversation"></input>
         </div>
-        -->
+
         <div id="recipient-list" class="scrollable recipient-list"></div>
       </div>
       <div id="message-col" class="col-lg-8" style="background-color: #f5f6fb;">
@@ -146,7 +157,7 @@
               <span id="conversation-title" style="float: left;">All conversations</span>
               <span style="float: right;">
                 <a id="prev-block" href="#" style="display: none"><< | </a>
-                
+
                 <a id="next-block" href="#" style="display: none">>></a>
               </span>
             </div>
@@ -156,11 +167,11 @@
               <div data-emojiarea data-type="unicode" data-global-picker="false">
                 <!--span class="emoji-button">&#x1f604;</span-->
                 <span class="emoji-button"><img class="medium-icon" src="/img/emoji.png"></img></span>
-                <input type="text" id="send-text" style="height: 40px" size="auto" placeholder="Enter text here"></input>
+                <input type="text" id="send-text" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
               </div>
             </div>
           </div>
-          <div class="col-lg-3">
+          <div class="col-lg-2">
             <span class="block_space" id="downloads" style="display: none">
               <a href="#" onclick="downloadMessageStore('CSV');return false;" style="display: inline">Download (CSV)</a><br>
               <a href="#" onclick="downloadMessageStore('JSON');return false;" style="display: inline">Download (JSON)</a>
