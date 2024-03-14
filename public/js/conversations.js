@@ -347,12 +347,12 @@ function createConversationsList(totalMsg){
     var avatarUri = null
     var name = ""
     if (identity){
-      name = `${identity.authorName}`
+      name = identity.authorName
       avatarUri = identity.avatarUri
     }
     var customer = convoGroup.conversations.find( o => o.status == "New" || o.status == "Ignored" || o.status == "Replied")
     if (customer)
-      name += ` - ${customer.authorName}`
+      name += (name != "") ? ` - ${customer.authorName}` : customer.authorName
 
     if (convoGroup.conversations.length == 0){
         console.log("not likely")
@@ -401,7 +401,7 @@ function showConversation(selectedConvo, name){
         var convoLen = convoGroup.conversations.length - 1
         for (var n=convoLen; n>=0; n--){
           var msg = convoGroup.conversations[n]
-          if (msg.status == "New" || msg.status == "Replied"){
+          if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
             params.to = msg.id
           }
           html += createConversationItem(msg, false)
@@ -425,7 +425,7 @@ function showConversation(selectedConvo, name){
       var maxLen = convoGroup.conversations.length - 1
       for (var i=maxLen; i>=0; i--){
         var msg = convoGroup.conversations[i]
-        if (msg.status == "New" || msg.status == "Replied"){
+        if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
           params.to = msg.id
         }
         html += createConversationItem(msg, false)
