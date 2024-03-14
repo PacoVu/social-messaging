@@ -65,24 +65,34 @@ function addToRecipient(elm){
   $("#to-new-number").val($(elm).val())
 }
 
-function openInitiateWAMessage(){
+function openInitiateWAMessage(contactsList){
+  var testTemplatesName = [ "account_usage_info", "none-existing-template" ]
+  var testTemplateLang = [ "en", "fr", "es" ]
   $("#contacts-block").show()
-  if (contactList.length > 0){
+  if (contactsList.length > 0){
     if ($("#contact-list").val() == ""){
       var contacts = ""
-      for (var contact of contactList){
-        var name = `${contact.fname} ${contact.lname}`
-        //var optionText = name;
-        //var optionValue = contact.phoneNumber;
-        //$('#contact-list').append(`<option value="${optionValue}"> ${optionText} </option>`);
-        contacts += `<option value="${contact.phoneNumber}">${name}</option>`
+      for (var contact of contactsList){
+        if (contact.type == "Phone"){
+          contacts += `<option value="${contact.mobilePhone}">${contact.displayName}</option>`
+        }
       }
     }
     $("#contact-list").html(contacts)
     $('#contact-list').selectpicker('refresh');
   }
-
-  var fromNumber = $("#my-numbers").val()
+  var templates = ""
+  for (var template of testTemplatesName){
+    templates += `<option value="${template}">${template}</option>`
+  }
+  $("#template-list").html(templates)
+  $('#template-list').selectpicker('refresh');
+  var languages = ""
+  for (var language of testTemplateLang){
+    languages += `<option value="${language}">${language}</option>`
+  }
+  $("#language-list").html(languages)
+  $('#language-list').selectpicker('refresh');
 
   var message = $('#send_new_wa_form');
   setTimeout(function (){
@@ -109,6 +119,8 @@ function openInitiateWAMessage(){
         action: function(dialog) {
           var params = {
             to: $("#to-new-number").val(),
+            templateName: $("#template-list").val(),
+            templateLanguage: $("#language-list").val(),
             message: $("#new-wa-text-message").val()
           }
 
@@ -120,7 +132,7 @@ function openInitiateWAMessage(){
             $("#new-wa-text-message").focus()
             return _alert("Please enter text message!")
           }
-          var url = "sendindividualmessage"
+          var url = "initiate-wa-conversation"
           console.log(params)
           return
           var posting = $.post( url, params );

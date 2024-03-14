@@ -95,7 +95,8 @@ function openInitiateMessage(){
   if (channel){
     switch (channel.sourceType) {
       case "WhatsApp":
-        openInitiateWAMessage(channel.id, channel.name)
+        var contactsList = JSON.parse(window.contacts)
+        openInitiateWAMessage(contactsList)
         break;
       case "Twitter":
 
@@ -343,6 +344,7 @@ function processResult(){
 function createConversationsList(totalMsg){
   var html = `<div id='0' class='recipient-item' onclick='showConversation("all", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
   for (var convoGroup of messageList){
+    // possible statuses: New, Assigned, Replied, UserReply, UserInitiated, Ignored
     var identity = convoGroup.conversations.find( o => o.status == "UserReply" || o.status == "UserInitiated")
     var avatarUri = null
     var name = ""

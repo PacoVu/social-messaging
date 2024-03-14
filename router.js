@@ -218,11 +218,11 @@ var router = module.exports = {
     users[index].postFeedbackToGlip(req)
     res.send({"status":"ok","message":"Thank you for sending your feedback!"})
   },
-  loadMessageStorePage: async function(req, res){
+  loadConversationPage: async function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
       return this.forceLogin(req, res)
-    var check = await users[index].loadMessageStorePage(res)
+    var check = await users[index].loadConversationPage(res)
     if (!check){
       users.splice(index, 1)
       this.forceLogin(req, res)

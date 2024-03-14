@@ -46,6 +46,7 @@ function User(id) {
   ]
 
   this.agentsList = []
+  this.contactsList = []
   this.identities = []
   return this
 }
@@ -63,10 +64,11 @@ var engine = User.prototype = {
     getPlatform: function(){
       return this.rc_platform.getSDKPlatform()
     },
-    loadMessageStorePage: async function(res){
+    loadConversationPage: async function(res){
       res.render('main', {
         userName: this.getUserName(),
-        channels: this.connectedChannels
+        channels: this.connectedChannels,
+        contacts: this.contactsList
       })
       return true
     },
@@ -160,7 +162,7 @@ var engine = User.prototype = {
         }
         var resp = await p.get(endpoint, params)
         var jsonObj = await resp.json()
-        //return console.log(JSON.stringify(jsonObj))
+        //console.log(JSON.stringify(jsonObj))
         for (var record of jsonObj.records){
           var item = {
             id: record.id,
@@ -185,9 +187,23 @@ var engine = User.prototype = {
                 this.agentsList.push(item)
               }
             }
+          }else{ // Assumed that this is a contact
+            if (record.mobilePhone && isNaN(record.mobilePhone))
+              continue
+            var contact = {
+                id: record.id,
+                lastName: record.lastName,
+                firstName: record.firstName,
+                displayName: record.displayName,
+                screenName: record.screenName,
+                identityGroupId: record.identityGroupId,
+                mobilePhone: record.mobilePhone,
+                type: record.type
+            }
+            this.contactsList.push(contact)
           }
         }
-        //console.log(this.identities)
+        //console.log(this.contactsList)
       }catch(e){
         console.log(e.message)
       }
@@ -282,6 +298,7 @@ var engine = User.prototype = {
                   agentName: (agent) ? agent.name : "",
                   synchronizationStatus: jsonObj.synchronizationStatus,
                   status: jsonObj.status,
+                  type: jsonObj.type,
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
@@ -387,6 +404,16 @@ var engine = User.prototype = {
 
         var agent = this.agentsList.find( o => o.userId == record.creatorId)
         var contentUri = ""
+        // all possible types:
+        /*
+         Album, AuthenticateMessage, AuthenticateResponse, Carousel,
+         CarouselMessage, Comment, ContactMessage, Content, Email,
+         FormMessage, FormResponse, HsmMessage, Link, ListMessage,
+         Media, Message, OutboundMessage, PaymentMessage, Photo,
+         PostbackMessage, PrivateTweet, PromptMessage, Question, Review,
+         ReviewResponse, RichLinkMessage, SelectMessage, Status, TemplateMessage,
+         TimePickerMessage, Tweet, Video, VideoCallRequestMessage
+        */
         if (record.sourceType == "Facebook"){
           if (record.type == "Photo" || record.type == "Album"){
             contentUri = record.fbLink
@@ -413,6 +440,7 @@ var engine = User.prototype = {
           creatorId: record.creatorId,
           agentName: (agent) ? agent.name : "",
           status: record.status,
+          type: record.type,
           synchronizationStatus: record.synchronizationStatus,
           threadId: record.threadId,
           inReplyToContentId: record.inReplyToContentId,

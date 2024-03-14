@@ -69,9 +69,9 @@ app.get('/logout', function (req, res) {
 })
 
 app.get('/main', function (req, res) {
-  console.log('loadMessageStorePage')
+  console.log('loadConversationPage')
   if (req.session.extensionId != 0)
-    router.loadMessageStorePage(req, res)
+    router.loadConversationPage(req, res)
   else{
     res.render('index')
   }

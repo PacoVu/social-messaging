@@ -41,6 +41,7 @@
     <script>
       window.userName = '<%- userName %>'
       window.channels = '<%- JSON.stringify(channels) %>'
+      window.contacts = '<%- JSON.stringify(contacts) %>'
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();
       });
@@ -68,10 +69,14 @@
           <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
         </span>
       </div>
-      <!--div class="block_space">
-        <label class="" for="my-numbers">To</label>
-        <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
-      </div-->
+      <div class="block_space">
+        <label class="" for="template-list">Template name</label>
+        <select id="template-list" class="selectpicker filter-select" title="Select a template" style="display: inline;width: 100px"></select>
+      </div>
+      <div class="block_space">
+        <label class="" for="language-list">Template language</label>
+        <select id="language-list" class="selectpicker filter-select" title="Select a language" style="display: inline;width: 100px"></select>
+      </div>
       <div class="block_space">
         <textarea id="new-wa-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
       </div>
