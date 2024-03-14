@@ -258,7 +258,7 @@ var engine = User.prototype = {
               //authorIdentityId: '65c3fe3e729ae3000785aac1',
               body: body.message,
 
-              templateLanguage: "en",
+              //templateLanguage: "en",
               autoSubmitted: true,
               public: false,
               //sourceType: 'WhatsApp',

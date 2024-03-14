@@ -316,7 +316,7 @@ function processResult(){
   //$("#downloads").show()
 
   createConversationsList(totalMsg)
-  console.log("pageTokens", pageTokens)
+  //console.log("pageTokens", pageTokens)
   if (pageTokens != undefined){
     if (pageTokens.nextPageToken != ""){
       var link = $("#next-block");
@@ -449,6 +449,7 @@ function showConversation(selectedConvo, name){
 }
 
 function createConversationItem(item, conversation){
+  //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)
   var timestamp = date.getTime() //- timeOffset
@@ -472,6 +473,9 @@ function createConversationItem(item, conversation){
     }else if (item.synchronizationStatus == "ExportPending"){
       line += `<div class="chat-text warning">${msg}</div>`
       line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
+    }else if (item.synchronizationStatus == "ExportAborted"){
+      line += `<div class="chat-text error">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">${timeStr}<br>${item.agentName}</div>`
     }
     if (item.avatarUri != ""){
       line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
