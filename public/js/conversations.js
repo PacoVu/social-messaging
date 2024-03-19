@@ -129,21 +129,11 @@ function sendTextMessage(message){
   posting.done(function( res ) {
     if (res.status == "ok"){
       //console.log(res)
-      /*
-      var msgIndex = messageList.findIndex(o => o.id === msg.id)
-      if (msgIndex < 0)
-        messageList.splice(0, 0, msg);
-      else
-        messageList[msgIndex] = msg
-      */
       var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
       convoGroup.conversations.unshift(res.message)
-      /*
-      if (msgIndex < 0)
-        messageList.splice(0, 0, res.message);
-      else
-        messageList[msgIndex] = msg
-      */
+      window.setTimeout(function(msgId){
+        checkSendMessageStatus(msgId)
+      },1000, res.message.id)
       processResult()
     }else if (res.status == "error"){
       _alert(res.message)
@@ -159,6 +149,35 @@ function sendTextMessage(message){
   });
   posting.fail(function(response){
     alert(response);
+  });
+}
+
+function checkSendMessageStatus(messageId){
+  var url = `poll-sending-message-status?id=${messageId}`
+  var getting = $.get( url );
+  getting.done(function( res ) {
+    if (res.status == "ok"){
+      if (res.message.synchronizationStatus == "Success"){
+        var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
+        if (convoGroup){
+          let msgIndex = convoGroup.conversations.findIndex(o => o.id === res.message.id)
+          if (msgIndex >= 0){
+              convoGroup.conversations[msgIndex] = res.message
+              processResult()
+          }
+        }
+      }else if (res.message.synchronizationStatus == "ExportPending"){
+        window.setTimeout(function(msgId){
+          checkSendMessageStatus(msgId)
+        },3000, messageId)
+      }
+    }else if (res.status == "error"){
+      alert(res.message)
+    }else{
+      window.setTimeout(function(){
+        window.location.href = "/relogin"
+      },8000)
+    }
   });
 }
 

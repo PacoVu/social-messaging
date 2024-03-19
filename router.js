@@ -169,6 +169,13 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].pollNewMessages(res)
   },
+  checkSendMessageStatus: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    console.log("checkSendMessageStatus()", req.query.id)
+    users[index].checkSendMessageStatus(req.query.id, res)
+  },
   readMessageList: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)

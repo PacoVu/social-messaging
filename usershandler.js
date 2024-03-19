@@ -328,6 +328,52 @@ var engine = User.prototype = {
           newMessages: []
       })
     },
+    checkSendMessageStatus: async function(msgId, res){
+      var endpoint = `/cx/social-messaging/v1/contents/${msgId}`
+      var p = await this.rc_platform.getPlatform(this.extensionId)
+      if (p){
+        try {
+          var resp = await p.get(endpoint)
+          var jsonObj = await resp.json()
+          var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
+          var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
+          var message = {
+                  id: jsonObj.id,
+                  creationTime: jsonObj.creationTime,
+                  lastModifiedTime: jsonObj.lastModifiedTime,
+                  authorName: (identity != null) ? identity.displayName : "Unknown",
+                  authorIdentityId: jsonObj.authorIdentityId,
+                  body: jsonObj.body,
+                  contentUri: "",
+                  avatarUri: (identity != null) ? identity.avatarUri : "",
+                  creatorId: jsonObj.creatorId,
+                  agentName: (agent) ? agent.name : "",
+                  synchronizationStatus: jsonObj.synchronizationStatus,
+                  status: jsonObj.status,
+                  type: jsonObj.type,
+                  threadId: jsonObj.threadId,
+                  inReplyToContentId: jsonObj.inReplyToContentId,
+                  inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                }
+          res.send({
+              status:"ok",
+              message: message
+          })
+        } catch (e) {
+          console.log("checkSendMessageStatus()")
+          res.send({
+              status: "error",
+              message: e.message
+            })
+        }
+      }else{
+        res.send({
+          status: "failed",
+          message: "You have been logged out. Please login again."
+        })
+      }
+
+    },
     readMessageList: function (req, res){
       console.log("readMessageList")
 
@@ -351,7 +397,7 @@ var engine = User.prototype = {
       //else
       //  readParams['source'] = JSON.parse(req.body.sourceId)
 
-      console.log("readParams", readParams)
+      //console.log("readParams", readParams)
       this._readMessageList(res, readParams)
     },
     _readMessageList: async function (res, readParams){

@@ -119,6 +119,14 @@ app.get("/poll-new-messages", function (req, res) {
   }
 })
 
+app.get("/poll-sending-message-status", function (req, res) {
+  if (req.session.extensionId != 0)
+    router.checkSendMessageStatus(req, res)
+  else{
+    res.render('index')
+  }
+})
+
 app.post('/read-message-store', function (req, res) {
   console.log('readMessageStore')
   if (req.session.extensionId != 0)

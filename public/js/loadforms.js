@@ -134,6 +134,7 @@ function openInitiateWAMessage(contactsList){
           }
           var url = "initiate-wa-conversation"
           console.log(params)
+          alert("Initiating WhatsApp message requires a template which is not yet supported.")
           return
           var posting = $.post( url, params );
           posting.done(function( res ) {
@@ -190,12 +191,16 @@ function openInitiateFBMessage(sourceId, channelName){
             return _alert("Please enter text message!")
           }
           var url = "initiate-fb-conversation"
-          console.log(params)
-          //return
           var posting = $.post( url, params );
           posting.done(function( res ) {
             if (res.status == "ok"){
-              console.log(res.message)
+              var newConvo = {
+                conversationId: res.message.threadId,
+                conversations: [res.message]
+              }
+              messageList.unshift(newConvo)
+              currentSelectedItem = newConvo.conversationId
+              checkSendMessageStatus(res.message.id)
               dialog.close();
             }else if (res.status == "failed"){
               _alert(res.message)
