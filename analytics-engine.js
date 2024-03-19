@@ -112,7 +112,7 @@ var engine = Analytics.prototype = {
           deliveredCount: 0,
           sendingFailedCount: 0
         }
-        if (message.status == "UserReply" || message.status == "UserInitiated"){
+        if (message.status == "UserReply" || message.status == "UserInitiated" || message.status == "PendingApproval"){
           item.outboundCount++
           this.analyticsData.outboundCount++
           switch (message.synchronizationStatus) {
@@ -131,7 +131,7 @@ var engine = Analytics.prototype = {
         }
         this.analyticsData.months.push(item)
       }else{
-        if (message.status == "UserReply" || message.status == "UserInitiated"){ // Outbound
+        if (message.status == "UserReply" || message.status == "UserInitiated" || message.status == "PendingApproval"){ // Outbound
           month.outboundCount++
           this.analyticsData.outboundCount++
           switch (message.synchronizationStatus) {
@@ -165,7 +165,7 @@ var engine = Analytics.prototype = {
           agentNewMsgIds: [],
           agentRepliedMsgIds: []
         }
-        if (message.status == "UserReply" || message.status == "UserInitiated"){
+        if (message.status == "UserReply" || message.status == "UserInitiated" || message.status == "PendingApproval"){
           item.outboundCount++
           switch (message.synchronizationStatus) {
             case "Success":
@@ -188,7 +188,7 @@ var engine = Analytics.prototype = {
         this.analyticsData.channels.push(item)
         //console.log(this.analyticsData.phoneNumbers)
       }else{
-        if (message.status == "UserReply" || message.status == "UserInitiated"){
+        if (message.status == "UserReply" || message.status == "UserInitiated" || message.status == "PendingApproval"){
           channel.outboundCount++
           switch (message.synchronizationStatus) {
             case "Success":

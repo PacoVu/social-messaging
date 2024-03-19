@@ -345,7 +345,7 @@ function createConversationsList(totalMsg){
   var html = `<div id='0' class='recipient-item' onclick='showConversation("all", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
   for (var convoGroup of messageList){
     // possible statuses: New, Assigned, Replied, UserReply, UserInitiated, Ignored
-    var identity = convoGroup.conversations.find( o => o.status == "UserReply" || o.status == "UserInitiated")
+    var identity = convoGroup.conversations.find( o => o.status == "UserReply" || o.status == "UserInitiated" || o.status == "PendingApproval")
     var avatarUri = null
     var name = ""
     if (identity){
@@ -467,7 +467,7 @@ function createConversationItem(item, conversation){
   }
 
   var msg = (item.body != null) ? item.body.replace(/\r?\n/g, "<br>") : ""
-  if (item.status == "UserInitiated" || item.status == "UserReply"){ // Outbound
+  if (item.status == "UserInitiated" || item.status == "UserReply" || item.status == "PendingApproval"){ // Outbound
     line += '<li class="chat-right">'
     if (item.synchronizationStatus == "Success"){
       line += `<div class="chat-text">${msg}</div>`

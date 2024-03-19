@@ -19,7 +19,7 @@ function User(id) {
   //this.analytics = new Analytics()
   this.connectedChannels = [
     {
-      name: "GPS plumbing",
+      name: "Paco plumbing services",
       id:"65c3fdd9527bf900079cefcb",
       sourceType: "WhatsApp"
     },
