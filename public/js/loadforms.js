@@ -65,7 +65,7 @@ function addToRecipient(elm){
   $("#to-new-number").val($(elm).val())
 }
 
-function openInitiateWAMessage(contactsList){
+function openInitiateWAMessage(channelId, channelName, contactsList){
   var testTemplatesName = [ "account_usage_info", "none-existing-template" ]
   var testTemplateLang = [ "en", "fr", "es" ]
   $("#contacts-block").show()
@@ -102,7 +102,7 @@ function openInitiateWAMessage(contactsList){
     ;
   })
   BootstrapDialog.show({
-      title: `<div style="font-size:1.2em;font-weight:bold;">Send new message</div>`,
+      title: `<div style="font-size:1.2em;font-weight:bold;">Send new message from ${channelName}</div>`,
       message: message,
       draggable: true,
       onhide : function(dialog) {

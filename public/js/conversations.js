@@ -96,7 +96,7 @@ function openInitiateMessage(){
     switch (channel.sourceType) {
       case "WhatsApp":
         var contactsList = JSON.parse(window.contacts)
-        openInitiateWAMessage(contactsList)
+        openInitiateWAMessage(channel.id, channel.name, contactsList)
         break;
       case "Twitter":
 

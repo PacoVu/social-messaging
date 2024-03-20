@@ -21,27 +21,32 @@ function User(id) {
     {
       name: "Paco plumbing services",
       id:"65c3fdd9527bf900079cefcb",
-      sourceType: "WhatsApp"
+      sourceType: "WhatsApp",
+      icon: "whatsapp.png"
     },
     {
       name: "GPS HVAC Services",
       id:"65f1fabc80c3190007ab0fd9",
-      sourceType: "WhatsApp"
+      sourceType: "WhatsApp",
+      icon: "whatsapp.png"
     },
     {
       name: "Celebrations Cupcake Twitter",
       id:"643e937543995c0007df2854",
-      sourceType: "Twitter"
+      sourceType: "Twitter",
+      icon: "twitter.png"
     },
     {
       name: "Purple Shop LinkedIn",
       id:"64c831b164ffc7000754139e",
-      sourceType: "LinkedIn"
+      sourceType: "LinkedIn",
+      icon: "linkedin.png"
     },
     {
       name: "Celebrations Cupcake",
       id:"643e932e77961f0007b0acb0",
-      sourceType: "FaceBook"
+      sourceType: "FaceBook",
+      icon: "facebook.png"
     }
   ]
 

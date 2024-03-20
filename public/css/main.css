@@ -713,3 +713,9 @@ a:hover, a:visited, a:link, a:active
   z-index: 10000;
   background: white;
 }
+
+.whatsapp {
+  width: 25px;
+  height: 25px;
+  background-image: "./img/whatsapp.png";
+}
