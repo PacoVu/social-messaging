@@ -81,10 +81,10 @@ function readContacts(){
       //console.log(JSON.stringify(contactList))
       readMessageStore("")
     }else if (res.status == "failed") {
-      alert(res.message)
+      _alert(res.message, "Error")
       window.location.href = "/relogin"
     }else{
-      alert(res.message)
+      _alert(res.message, "Error")
     }
   });
 }
@@ -99,10 +99,11 @@ function openInitiateMessage(){
         openInitiateWAMessage(channel.id, channel.name, contactsList)
         break;
       case "Twitter":
-        openInitiateFBMessage(channel.id, channel.name)
+        //openInitiateFBMessage(channel.id, channel.name)
+        _alert("Not yet supported!", "Info")
         break;
       case "LinkedIn":
-        alert("Not yet supported!")
+        _alert("Not yet supported!", "Info")
         break;
       case "FaceBook":
         openInitiateFBMessage(channel.id, channel.name)
@@ -117,10 +118,10 @@ function openInitiateMessage(){
 function sendTextMessage(message){
   if (message == ""){
     $("#send-text").focus()
-    return alert("Please enter text message!")
+    return _alert("Please enter text message!")
   }
   if (params.to == ""){
-    return alert("please select a message to reply")
+    return _alert("please select a message to reply")
   }
   params.message = message
   //console.log(params)
@@ -136,19 +137,19 @@ function sendTextMessage(message){
       },1000, res.message.id)
       processResult()
     }else if (res.status == "error"){
-      _alert(res.message)
+      _alert(res.message, "Error")
     }else{
       if (res.message)
-        _alert(res.message)
+        _alert(res.message, "Error")
       else
-        _alert("You have been logged out. Please login again.")
+        _alert("You have been logged out. Please login again.", "Error")
       window.setTimeout(function(){
         window.location.href = "/relogin"
       },8000)
     }
   });
   posting.fail(function(response){
-    alert(response);
+    _alert(response, "Error");
   });
 }
 
@@ -172,7 +173,7 @@ function checkSendMessageStatus(messageId){
         }
       }
     }else if (res.status == "error"){
-      alert(res.message)
+      _alert(res.message, "Error")
     }else{
       window.setTimeout(function(){
         window.location.href = "/relogin"
@@ -302,19 +303,19 @@ function readMessageStore(token){
       //},3000)
     }else if (res.status == "error"){
       $("#conversation").html("")
-      _alert(res.message)
+      _alert(res.message, "Error")
     }else{
       if (res.message)
-        _alert(res.message)
+        _alert(res.message, "Error")
       else
-        _alert("You have been logged out. Please login again.")
+        _alert("You have been logged out. Please login again.", "Error")
       window.setTimeout(function(){
         window.location.href = "/relogin"
       },8000)
     }
   });
   posting.fail(function(response){
-    alert(response.statusText);
+    _alert(response.statusText, "Error");
   });
 }
 
@@ -533,7 +534,7 @@ function downloadMessageStore(format){
     if (res.status == "ok")
       window.location.href = res.message
     else
-      alert(res.message)
+      _alert(res.message, "Error")
   });
 }
 
