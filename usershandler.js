@@ -340,6 +340,7 @@ var engine = User.prototype = {
         try {
           var resp = await p.get(endpoint)
           var jsonObj = await resp.json()
+          //console.log(jsonObj)
           var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
           var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
           var message = {

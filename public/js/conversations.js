@@ -157,7 +157,11 @@ function checkSendMessageStatus(messageId){
   var getting = $.get( url );
   getting.done(function( res ) {
     if (res.status == "ok"){
-      if (res.message.synchronizationStatus == "Success"){
+      if (res.message.synchronizationStatus == "ExportPending"){
+        window.setTimeout(function(msgId){
+          checkSendMessageStatus(msgId)
+        },3000, messageId)
+      }else {
         var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
         if (convoGroup){
           let msgIndex = convoGroup.conversations.findIndex(o => o.id === res.message.id)
@@ -166,10 +170,6 @@ function checkSendMessageStatus(messageId){
               processResult()
           }
         }
-      }else if (res.message.synchronizationStatus == "ExportPending"){
-        window.setTimeout(function(msgId){
-          checkSendMessageStatus(msgId)
-        },3000, messageId)
       }
     }else if (res.status == "error"){
       alert(res.message)
