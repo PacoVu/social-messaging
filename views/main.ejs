@@ -24,6 +24,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.7/js/bootstrap-dialog.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.7/css/bootstrap-dialog.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- need this to support FireFox -->
     <!--
@@ -102,13 +103,13 @@
           <div class="block_space">
             <% if (channels.length > 1) { %>
               <label class="label-input" for="my-channels">Channels</label>
-              <select id="my-channels" class="selectpicker filter-select" onchange="readMessageStore()" data-width="180" title="my numbers">
+              <select id="my-channels" class="selectpicker filter-select" onchange="readMessageStore()" data-width="220" title="my numbers">
                 <% var i=0 %>
                 <% for (var item of channels) { %>
                   <% if (i == 0) { %>
-                    <option selected value="<%- item.id %>"><%= item.name %></option>
+                    <option selected value="<%- item.id %>" class="fa <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
                   <% }else{ %>
-                    <option value="<%- item.id %>"><%= item.name %></option>
+                    <option value="<%- item.id %>" class="fa  <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
                   <% }; i++ %>
                 <% } %>
               </select>
@@ -119,7 +120,7 @@
           </div>
           <div class="block_space">
             <label class="label-input" for="page-size">Max # messages</label>
-            <input type="number" id="page-size" size="6" class="form-control text-input" style="display:inline" value=30 step=5></input>
+            <input type="number" id="page-size" size="4" class="form-control text-input" style="display:inline" value=30 step=5></input>
           </div>
           <div class="block_space">
             <label class="label-input" for="direction">Time range</label>
