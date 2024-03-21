@@ -226,6 +226,7 @@ var engine = User.prototype = {
               public: false,
               sourceId: body.sourceId
             }
+          console.log(bodyParams)
           var resp = await p.post(endpoint, bodyParams)
           var jsonObj = await resp.json()
           //console.log(jsonObj)
@@ -767,11 +768,25 @@ var engine = User.prototype = {
             this.analytics.analyticsData.task = "Completed"
             /*
             console.log(this.analytics.analyticsData)
+            */
+            /*
+            console.log("By channel")
             for (var channel of this.analytics.analyticsData.channels){
+              console.log(channel.channelName)
               console.log("customer new messages:", channel.customerNewMsgIds.length)
               console.log("customer replied messages:", channel.customerRepliedMsgIds.length)
               console.log("Agent's new messages:", channel.agentNewMsgIds.length)
               console.log("Agent's replied messages:", channel.agentRepliedMsgIds.length)
+              console.log("=====")
+            }
+            console.log("By month")
+            for (var month of this.analytics.analyticsData.months){
+              console.log(month.month)
+              console.log("customer new messages:", month.customerNewMsgIds.length)
+              console.log("customer replied messages:", month.customerRepliedMsgIds.length)
+              console.log("Agent's new messages:", month.agentNewMsgIds.length)
+              console.log("Agent's replied messages:", month.agentRepliedMsgIds.length)
+              console.log("=====")
             }
             */
           }

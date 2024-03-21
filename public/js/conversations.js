@@ -99,10 +99,10 @@ function openInitiateMessage(){
         openInitiateWAMessage(channel.id, channel.name, contactsList)
         break;
       case "Twitter":
-
+        openInitiateFBMessage(channel.id, channel.name)
         break;
       case "LinkedIn":
-
+        alert("Not yet supported!")
         break;
       case "FaceBook":
         openInitiateFBMessage(channel.id, channel.name)

@@ -110,7 +110,11 @@ var engine = Analytics.prototype = {
           outboundCount: 0,
           inboundCount: 0,
           deliveredCount: 0,
-          sendingFailedCount: 0
+          sendingFailedCount: 0,
+          customerNewMsgIds: [],
+          customerRepliedMsgIds: [],
+          agentNewMsgIds: [],
+          agentRepliedMsgIds: []
         }
         if (message.status == "UserReply" || message.status == "UserInitiated" || message.status == "PendingApproval"){
           item.outboundCount++
@@ -125,9 +129,19 @@ var engine = Analytics.prototype = {
               this.analyticsData.sendingFailedCount++
               break
           }
+          if (message.inReplyToContentId)
+            item.agentRepliedMsgIds.push(message.id)
+          else
+            item.agentNewMsgIds.push(message.id)
         }else{ // received messages
           item.inboundCount++
           this.analyticsData.inboundCount++
+          if (!message.inReplyToContentId)
+            item.customerNewMsgIds.push(message.id)
+          else{
+            item.customerRepliedMsgIds.push(message.id)
+            console.log("Why customer message has inReplyToContentId?", message)
+          }
         }
         this.analyticsData.months.push(item)
       }else{
@@ -144,9 +158,19 @@ var engine = Analytics.prototype = {
               this.analyticsData.sendingFailedCount++
               break
           }
+          if (message.inReplyToContentId)
+            month.agentRepliedMsgIds.push(message.id)
+          else
+            month.agentNewMsgIds.push(message.id)
         }else{ // received messages
           month.inboundCount++
           this.analyticsData.inboundCount++
+          if (!message.inReplyToContentId)
+            month.customerNewMsgIds.push(message.id)
+          else{
+            month.customerRepliedMsgIds.push(message.id)
+            console.log("Why customer message has inReplyToContentId?", message)
+          }
         }
       }
       // by channel
@@ -176,12 +200,15 @@ var engine = Analytics.prototype = {
               break
           }
           if (message.inReplyToContentId)
-            item.agentRepliedMsgIds.push(message.inReplyToContentId)
+            item.agentRepliedMsgIds.push(message.id)
+          else
+            item.agentNewMsgIds.push(message.id)
         }else{ // received messages
           item.inboundCount++
           if (!message.inReplyToContentId)
             item.customerNewMsgIds.push(message.id)
           else{
+            item.customerRepliedMsgIds.push(message.id)
             console.log("Why customer message has inReplyToContentId?")
           }
         }
@@ -199,7 +226,7 @@ var engine = Analytics.prototype = {
               break
           }
           if (message.inReplyToContentId)
-            channel.agentRepliedMsgIds.push(message.inReplyToContentId)
+            channel.agentRepliedMsgIds.push(message.id)
           else
             channel.agentNewMsgIds.push(message.id)
         }else{ // received messages
@@ -207,7 +234,7 @@ var engine = Analytics.prototype = {
           if (!message.inReplyToContentId)
             channel.customerNewMsgIds.push(message.id)
           else{
-            channel.customerRepliedMsgIds.push(message.inReplyToContentId)
+            channel.customerRepliedMsgIds.push(message.id)
             console.log("Why customer message has inReplyToContentId?", message)
           }
         }

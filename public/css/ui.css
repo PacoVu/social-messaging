@@ -27,7 +27,7 @@
 .left-middle-align {
   margin: 0;
   height: 50px;
-  width: 410px;
+  width: 610px;
   display: block;
   position: relative;
   float: left;
@@ -51,8 +51,8 @@
 
 .left-middle-align .title {
   position: absolute;
-  top: 50%;
-  left: 220px;
+  top: 53%;
+  left: 250px;
   margin-top: -15px;
   font-size: 20px;
   color: #0684bd;
