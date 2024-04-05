@@ -128,9 +128,12 @@ var engine = User.prototype = {
               this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf-8")
               console.log("subscriptionId", this.subscriptionId)
               if (!this.subscriptionId || this.subscriptionId != "")
-                await this.renewNotification(p)
+                await this.renewSubscription(p)
               else
                 await this.subscribeForNotification()
+
+              var check = fs.readFileSync("subscriptionid.txt", "utf-8")
+              console.log("Check", check)
             } catch (e) {
               console.log("login() - Failed")
               console.error(e.message);
@@ -992,10 +995,11 @@ var engine = User.prototype = {
         console.log("failed")
       }
     },
-    renewNotification: async function(p){
+    renewSubscription: async function(p){
       //var p = await this.rc_platform.getPlatform(this.extensionId)
       if (p){
         var endpoint = `/restapi/v1.0/subscription/${this.subscriptionId}`
+        console.log("Endpoint", endpoint)
         try {
           var resp = await p.get(endpoint)
           var jsonObj = await resp.json()
@@ -1019,7 +1023,7 @@ var engine = User.prototype = {
 
         this.subscribeForNotification()
       }else{
-        console.log("err: renewNotification");
+        console.log("err: renewSubscription");
         callback("err", "failed")
       }
     },
