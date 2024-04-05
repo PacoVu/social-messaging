@@ -127,7 +127,7 @@ var engine = User.prototype = {
               console.log("Read subscription id")
               this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf-8")
               console.log("subscriptionId", this.subscriptionId)
-              if (this.subscriptionId != "")
+              if (!this.subscriptionId || this.subscriptionId != "")
                 await this.renewNotification(p)
               else
                 await this.subscribeForNotification()
