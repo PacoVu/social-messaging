@@ -124,6 +124,7 @@ var engine = User.prototype = {
               await this.listIdentities(p)
               await this.readAgentInfo(p)
               //await this.subscribeForNotification()
+              console.log("Read subscription id")
               this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf-8")
               console.log("subscriptionId", this.subscriptionId)
               if (this.subscriptionId != "")
