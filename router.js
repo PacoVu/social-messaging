@@ -75,7 +75,7 @@ var router = module.exports = {
       console.log("Must be a reload page")
       var index = getUserIndex(req.session.userId)
       if (index >= 0){
-        var check = await users[index].loadOptionPage(res)
+        var check = await users[index].loadConversationPage(res)
         if (!check){
           users.splice(index, 1)
           this.forceLogin(req, res)
