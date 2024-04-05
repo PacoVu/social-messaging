@@ -125,14 +125,14 @@ var engine = User.prototype = {
               await this.readAgentInfo(p)
               //await this.subscribeForNotification()
               console.log("Read subscription id")
-              this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf-8")
+              this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf8")
               console.log("subscriptionId", this.subscriptionId)
               if (!this.subscriptionId || this.subscriptionId != "")
                 await this.renewSubscription(p)
               else
                 await this.subscribeForNotification()
 
-              var check = fs.readFileSync("subscriptionid.txt", "utf-8")
+              var check = fs.readFileSync("subscriptionid.txt", "utf8")
               console.log("Check", check)
             } catch (e) {
               console.log("login() - Failed")
