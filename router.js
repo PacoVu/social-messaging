@@ -251,10 +251,10 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].sendInviteToSupportTeam(req, res)
   },
-  processBatchEventNotication: function(eventObj){
+  processEventNotication: function(eventObj){
     var index = getUserIndexByExtensionId(eventObj.ownerId)
     if (index < 0)
       return console.log("not found this user")
-    users[index].processBatchEventNotication(eventObj)
+    users[index].processEventNotication(eventObj)
   }
 }

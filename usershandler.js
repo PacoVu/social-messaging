@@ -123,7 +123,13 @@ var engine = User.prototype = {
               // Read identities
               await this.listIdentities(p)
               await this.readAgentInfo(p)
-
+              //await this.subscribeForNotification()
+              this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf-8")
+              console.log("subscriptionId", this.subscriptionId)
+              if (this.subscriptionId != "")
+                await this.renewNotification(p)
+              else
+                await this.subscribeForNotification()
             } catch (e) {
               console.log("login() - Failed")
               console.error(e.message);
@@ -754,9 +760,8 @@ var engine = User.prototype = {
             this.analytics.analyzeMessage(record)
           }
 
-          //if (jsonObj.paging.hasOwnProperty('nextPageToken')) {
-          if (jsonObj.paging.nextPageToken != "") {
-            //var pageToken = jsonObj.paging.nextPageToken
+          if (jsonObj.paging.hasOwnProperty('nextPageToken')) {
+          //if (jsonObj.paging.nextPageToken != "") {
             queryParams['pageToken'] = jsonObj.paging.nextPageToken
             // Make sure not to exceed the API rate limit of 40 API calls per minute
             await sleep(1200)
@@ -949,21 +954,21 @@ var engine = User.prototype = {
       this.subscriptionId = ""
       callback(null, 1)
     },
+    processEventNotication: function(eventPayload){
+      console.log(eventPayload)
+    },
     // Notifications
-    subscribeForNotification: async function(eventFilters, callback){
+    subscribeForNotification: async function(){
+      console.log("subscribeForNotification")
       var p = await this.rc_platform.getPlatform(this.extensionId)
       if (p){
         var endpoint = '/restapi/v1.0/subscription'
-        /*
-        var eventFilters = []
-        var filter = ""
-        for (var item of this.phoneHVNumbers){
-          filter = `/restapi/v1.0/account/~/a2p-sms/messages?direction=Inbound&to=${item.number}`
-          eventFilters.push(filter)
-          filter = `/restapi/v1.0/account/~/a2p-sms/batches?from=${item.number}`
-          eventFilters.push(filter)
-        }
-        */
+        var eventFilters = [
+          '/cx/social-messaging/v1/contents/Imported',
+          '/cx/social-messaging/v1/contents/Exported',
+          '/cx/social-messaging/v1/contents/DiscussionInitiated'
+        ]
+
         try {
           var resp = await p.post('/restapi/v1.0/subscription', {
             eventFilters: eventFilters,
@@ -978,16 +983,16 @@ var engine = User.prototype = {
           this.subscriptionId = jsonObj.id
           console.log("Subscription created")
           console.log(this.subscriptionId)
-          callback(null, jsonObj.id)
+          fs.writeFileSync("subscriptionid.txt", this.subscriptionId)
         } catch (e) {
-          callback(e.message, "")
+          console.log(e.message)
         }
       }else{
-        callback("failed", "")
+        console.log("failed")
       }
     },
-    renewNotification: async function(callback){
-      var p = await this.rc_platform.getPlatform(this.extensionId)
+    renewNotification: async function(p){
+      //var p = await this.rc_platform.getPlatform(this.extensionId)
       if (p){
         var endpoint = `/restapi/v1.0/subscription/${this.subscriptionId}`
         try {
@@ -996,71 +1001,25 @@ var engine = User.prototype = {
           if (jsonObj.status != "Active"){
             console.log("RENEW subscription")
             try {
-            var renewResp = await p.post(`/restapi/v1.0/subscription/${this.subscriptionId}/renew`)
-            var jsonObjRenew = renewResp.json()
+              var renewResp = await p.post(`/restapi/v1.0/subscription/${this.subscriptionId}/renew`)
+              var jsonObjRenew = renewResp.json()
               console.log("Update notification via WebHook.")
-              callback(null, jsonObjRenew.id)
+              return
             } catch(e){
               console.log(e.message)
-              callback(e, e.message)
             }
           }else{
             console.log("still active => use it")
-            callback(null, jsonObj.id)
+            return
           }
         } catch (e) {
-          var eventFilters = []
-          var filter = ""
-          for (var item of this.phoneHVNumbers){
-            filter = `/restapi/v1.0/account/~/a2p-sms/messages?direction=Inbound&to=${item.number}`
-            eventFilters.push(filter)
-            filter = `/restapi/v1.0/account/~/a2p-sms/batches?from=${item.number}`
-            eventFilters.push(filter)
-          }
-          this.subscribeForNotification(eventFilters, (err, res) => {
-            if (!err)
-              callback(null, res)
-          })
+          console.log(e.message)
         }
+
+        this.subscribeForNotification()
       }else{
         console.log("err: renewNotification");
         callback("err", "failed")
-      }
-    },
-    updateNotification: async function( outbound, callback){
-      var p = await this.rc_platform.getPlatform(this.extensionId)
-      if (p){
-        var eventFilters = []
-        for (var item of this.phoneHVNumbers){
-          var filter = `/restapi/v1.0/account/~/a2p-sms/messages?direction=Inbound&to=${item.number}`
-          eventFilters.push(filter)
-          filter = `/restapi/v1.0/account/~/a2p-sms/batches?from=${item.number}`
-          eventFilters.push(filter)
-          if (outbound){
-            filter = `/restapi/v1.0/account/~/a2p-sms/messages?direction=Outbound&from=${item.number}`
-            eventFilters.push(filter)
-          }
-        }
-
-        var endpoint = `/restapi/v1.0/subscription/${this.subscriptionId}`
-        try {
-          var resp = await p.put(endpoint, {
-            eventFilters: eventFilters,
-            deliveryMode: {
-              transportType: 'WebHook',
-              address: process.env.WEBHOOK_DELIVERY_ADDRESS
-            },
-            expiresIn: process.env.WEBHOOK_EXPIRES_IN
-          })
-          var jsonObj = await resp.json()
-          this.subscriptionId = jsonObj.id
-          callback(null, jsonObj.id)
-        } catch (e) {
-          callback(e.message, eventFilters)
-        }
-      }else{
-        console.log("err: updateNotification");
-        callback("err", null)
       }
     },
     deleteSubscription: async function() {

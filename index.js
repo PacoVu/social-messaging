@@ -195,24 +195,10 @@ app.post('/webhookcallback', function(req, res) {
             }
             try {
               var jsonObj = JSON.parse(body)
-              if (jsonObj.event.indexOf("/a2p-sms/batches?") >= 0){
-                router.processBatchEventNotication(jsonObj)
+              if (jsonObj.event.indexOf("/cx/social-messaging/v1/contents") >= 0){
+                router.processEventNotication(jsonObj)
               }else{
-                var aUsers = router.getActiveUsers()
-                if (aUsers.length){
-                  var eventEngine = aUsers.find(o => o.extensionId === jsonObj.ownerId)
-                  if (eventEngine){
-                    eventEngine.processNotification(jsonObj)
-                  }else{
-                    console.log("Not my notification!!!")
-                    console.log(jsonObj.event)
-                    console.log(jsonObj.subscriptionId)
-                    console.log(jsonObj.ownerId)
-                    console.log(jsonObj.body.direction)
-                  }
-                }else{
-                  console.log("Not ready. Still loading users")
-                }
+                console.log("Not reamy event.")
               }
             }catch (e) {
               console.log("Body is corrupted!", body)
