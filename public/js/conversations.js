@@ -132,9 +132,11 @@ function sendTextMessage(message){
       //console.log(res)
       var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
       convoGroup.conversations.unshift(res.message)
+
       window.setTimeout(function(msgId){
         checkSendMessageStatus(msgId)
       },1000, res.message.id)
+
       processResult()
     }else if (res.status == "error"){
       _alert(res.message, "Error")
@@ -182,25 +184,33 @@ function checkSendMessageStatus(messageId){
   });
 }
 
+
 function pollNewMessages(){
   var url = "poll-new-messages"
   var getting = $.get( url );
   getting.done(function( res ) {
     if (res.status == "ok"){
       for (var msg of res.newMessages){
-        var msgIndex = -1
-        if (msg.direction == 'Outbound')
-          msgIndex = messageList.findIndex(o => o.batchId == msg.batchId)
-        else
-          msgIndex = messageList.findIndex(o => o.id == msg.id)
-        if (msgIndex >= 0){
-          messageList[msgIndex] = msg
-        }else {
-          messageList.splice(0, 0, msg);
+        var convoGroup = messageList.find(o => o.conversationId === msg.threadId)
+        if (convoGroup){
+            let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
+            if (msgIndex >= 0){
+                convoGroup.conversations[msgIndex] = msg
+                //processResult()
+            }else{
+              convoGroup.conversations.unshift(msg)
+            }
+        }else{
+          var newConvo = {
+            conversationId: msg.threadId,
+            conversations: [msg]
+          }
+          messageList.unshift(newConvo)
         }
       }
       if (res.newMessages.length)
         processResult()
+      console.log("New message count:", res.newMessages.length)
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
       },3000)
@@ -298,9 +308,11 @@ function readMessageStore(token){
       //console.log(messageList)
       pageTokens = res.pageTokens
       processResult()
-      //pollingTimer = window.setTimeout(function(){
-      //  pollNewMessages()
-      //},3000)
+      /* closed until notification payload issues are fixed
+      pollingTimer = window.setTimeout(function(){
+        pollNewMessages()
+      },3000)
+      */
     }else if (res.status == "error"){
       $("#conversation").html("")
       _alert(res.message, "Error")

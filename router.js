@@ -1,5 +1,19 @@
+const pgdb = require('./db')
 require('dotenv').load()
 var users = []
+
+createAccountTable()
+
+async function createAccountTable() {
+  var query = 'CREATE TABLE IF NOT EXISTS social_msg_accounts '
+  query += "(acct_id VARCHAR(16) PRIMARY KEY, subscription_id VARCHAR(48) NOT NULL, connected_channels JSONB NOT NULL)"
+  var result =await pgdb.createTableAsync(query)
+  if (!result) {
+      console.log("Error creating table")
+  }else{
+      console.log("createAccountTable DONE")
+  }
+}
 
 function getUserIndex(id){
   for (var i=0; i<users.length; i++){
@@ -212,6 +226,18 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].sendMessage(req, res)
   },
+  registerNewChannel: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].registerNewChannel(req.body, res)
+  },
+  unregisterChannel: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].unregisterChannel(req.query.id, res)
+  },
   initiateFBConversation: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)
@@ -244,6 +270,12 @@ var router = module.exports = {
       users.splice(index, 1)
       this.forceLogin(req, res)
     }
+  },
+  loadSettingsPage: async function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].loadSettingsPage(res)
   },
   sendInviteToSupportTeam: function(req, res){
     var index = getUserIndex(req.session.userId)

@@ -220,3 +220,67 @@ function openInitiateFBMessage(sourceId, channelName){
   });
   return false;
 }
+
+function openChannelRegistration(){
+  var message = $('#create_channel_form');
+
+  $('#create_channel_form').on('shown.bs.modal', function () {
+    ;
+  })
+  BootstrapDialog.show({
+      title: `<div style="font-size:1.2em;font-weight:bold;">Register a new channel</div>`,
+      message: message,
+      draggable: true,
+      onhide : function(dialog) {
+        $('#hidden-div-new-channel').append(message);
+      },
+      buttons: [{
+        label: 'Cancel',
+        action: function(dialog) {
+          dialog.close();
+        }
+      }, {
+        label: 'Submit',
+        cssClass: 'btn btn-primary',
+        action: function(dialog) {
+          var params = {
+            sourceType: $("#all-channels").val(),
+            name: $("#channel-name").val(),
+            id: $("#channel-id").val(),
+          }
+
+          if (params.name == ""){
+            $("#channel-name").focus()
+            return _alert("Please enter a channel name!")
+          }
+
+          if (params.sourceId == ""){
+            $("#channel-id").focus()
+            return _alert("Please enter a channel id!")
+          }
+
+          var url = "register-new-channel"
+          var posting = $.post( url, params );
+          posting.done(function( res ) {
+            if (res.status == "ok"){
+              _alert("New channel registered successfully")
+              //dialog.close();
+              window.location.href = "/settings"
+            }else if (res.status == "failed"){
+              _alert(res.message)
+              dialog.close();
+              //window.location.href = "login"
+            }else{
+              _alert(res.message)
+              dialog.close();
+            }
+          });
+          posting.fail(function(response){
+            _alert(response.statusText);
+            dialog.close();
+          });
+        }
+      }]
+  });
+  return false;
+}

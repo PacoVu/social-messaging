@@ -94,6 +94,23 @@ app.get ('/analytics', function (req, res) {
   }
 })
 
+app.get('/settings', function (req, res) {
+  console.log('loadSettingsPage')
+  if (req.session.extensionId != 0)
+    router.loadSettingsPage(req, res)
+  else{
+    res.render('index')
+  }
+})
+
+app.get("/unregister-channel", function (req, res) {
+  if (req.session.extensionId != 0)
+    router.unregisterChannel(req, res)
+  else{
+    res.render('index')
+  }
+})
+
 app.post('/create-messaging-analytics', function (req, res) {
   //console.log('getMessagingAnalytics')
   if (req.session.extensionId != 0)
@@ -167,6 +184,11 @@ app.get('/oauth2callback', function(req, res){
 app.post('/send-message', function (req, res) {
   console.log("post send message")
   router.sendMessage(req, res)
+})
+
+app.post('/register-new-channel', function (req, res) {
+  console.log("register a new channel")
+  router.registerNewChannel(req, res)
 })
 
 app.post('/sendfeedback', function (req, res) {

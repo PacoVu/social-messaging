@@ -1,4 +1,5 @@
 var fs = require('fs')
+const pgdb = require('./db')
 const RCPlatform = require('./platform.js')
 var router = require('./router');
 
@@ -17,7 +18,8 @@ function User(id) {
   this.subscriptionId = ""
   this.rc_platform = new RCPlatform(id)
   //this.analytics = new Analytics()
-  this.connectedChannels = [
+  this.connectedChannels = []
+  /*
     {
       name: "Paco plumbing services",
       id:"65c3fdd9527bf900079cefcb",
@@ -48,11 +50,12 @@ function User(id) {
       sourceType: "FaceBook",
       icon: "fa-facebook"
     }
-  ]
+  ]*/
 
   this.agentsList = []
   this.contactsList = []
   this.identities = []
+  this.newMessages = []
   return this
 }
 
@@ -70,11 +73,18 @@ var engine = User.prototype = {
       return this.rc_platform.getSDKPlatform()
     },
     loadConversationPage: async function(res){
-      res.render('main', {
-        userName: this.getUserName(),
-        channels: this.connectedChannels,
-        contacts: this.contactsList
-      })
+      if (this.connectedChannels.length > 0){
+        res.render('main', {
+          userName: this.getUserName(),
+          channels: this.connectedChannels,
+          contacts: this.contactsList
+        })
+      }else{
+        res.render('settings', {
+          userName: this.getUserName(),
+          channels: this.connectedChannels
+        })
+      }
       return true
     },
     loadAnalyticsPage: async function(res){
@@ -95,6 +105,12 @@ var engine = User.prototype = {
         //assetsPath: process.env.ASSETS_PATH
       })
       return true
+    },
+    loadSettingsPage: async function(res){
+      res.render('settings', {
+          userName: this.getUserName(),
+          channels: this.connectedChannels
+      })
     },
     login: async function(req, res, callback){
       if (req.query.code) {
@@ -120,6 +136,15 @@ var engine = User.prototype = {
                 this.userEmail = jsonObj.contact.email
               this.userName = fullName
 
+              // check account settings. If no account settings force to create one from the settings page
+              var result = await this.readAccountInfo()
+              console.log("result", result)
+              console.log("channels", this.connectedChannels)
+              /*
+              if (!result){
+                res.send('login success');
+              }
+              */
               // Read identities
               await this.listIdentities(p)
               await this.readAgentInfo(p)
@@ -153,6 +178,84 @@ var engine = User.prototype = {
         res.send('No Auth code');
         callback("error", null)
       }
+    },
+    readAccountInfo: async function(){
+      var query = `SELECT connected_channels FROM social_msg_accounts WHERE acct_id='${this.accountId}'`
+      var result = await pgdb.readAsync(query)
+      if (result && result.rows.length > 0){
+        this.connectedChannels = result.rows[0].connected_channels
+        return "ok"
+      }else{ // no history
+        return null
+      }
+    },
+    registerNewChannel: async function(body, res){
+      var icon = ""
+      switch (body.sourceType) {
+        case "WhatsApp":
+          icon = "fa-whatsapp"
+          break;
+        case "Twitter":
+          icon = "fa-twitter"
+          break;
+        case "LinkedIn":
+          icon = "fa-linkedin"
+          break;
+        case "FaceBook":
+          icon = "fa-facebook"
+          break;
+        default:
+          break
+      }
+      var newChannel = {
+        name: body.name,
+        id: body.id,
+        sourceType: body.sourceType,
+        icon: icon
+      }
+
+      this.connectedChannels.push(newChannel)
+      var channelsStr = JSON.stringify(this.connectedChannels)
+      var query = "INSERT INTO social_msg_accounts (acct_id, subscription_id, connected_channels)"
+      query += " VALUES ($1,$2,$3)"
+      var values = [this.accountId, "", channelsStr]
+      query += ` ON CONFLICT (acct_id) DO UPDATE SET connected_channels='${channelsStr}'`
+      //console.log(query)
+      var result = await pgdb.insertAsync(query, values)
+      var response = {
+        status: "ok",
+        message: "New channel added"
+      }
+      if (!result){
+          console.error("Cannot update connected channels");
+          response.status = "error"
+          response.message = "Cannot register a new channel"
+      }else{
+          console.log("New channel added. DONE");
+      }
+      res.send(response)
+    },
+    unregisterChannel: async function(channelId, res){
+      var channelIndex = this.connectedChannels.findIndex(o => o.id === channelId)
+      if (channelIndex >= 0){
+        this.connectedChannels.splice(channelIndex, 1)
+      }
+      var channelsStr = JSON.stringify(this.connectedChannels)
+      var query = `UPDATE social_msg_accounts SET connected_channels='${channelsStr}' WHERE acct_id='${this.accountId}'`
+      //console.log(query)
+      var result = await pgdb.updateAsync(query)
+      var response = {
+        status: "ok",
+        message: "Selected channel unregistered"
+      }
+      if (!result){
+          console.error("Cannot update connected channels");
+          response.status = "error"
+          response.message = "Cannot unregister this channel"
+      }else{
+          console.log("Channel unregistered. DONE");
+      }
+      res.send(response)
     },
     readAgentInfo: async function(p){
       try{
@@ -339,10 +442,12 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
+      let newMessages = this.newMessages
       res.send({
           status: "ok",
-          newMessages: []
+          newMessages: newMessages
       })
+      this.newMessages = []
     },
     checkSendMessageStatus: async function(msgId, res){
       var endpoint = `/cx/social-messaging/v1/contents/${msgId}`
@@ -959,7 +1064,64 @@ var engine = User.prototype = {
       callback(null, 1)
     },
     processEventNotication: function(eventPayload){
+      return
       console.log(eventPayload)
+      var body = eventPayload.body
+      var synchronizationStatus = "Success"
+      /*
+      if (eventPayload.event == '/cx/social-messaging/v1/contents/Imported'){
+        synchronizationStatus
+      }else if (eventPayload.event == '/cx/social-messaging/v1/contents/Exported'){
+        synchronizationStatus
+      }
+      */
+      var identity = this.identities.find( o => o.id == body.authorIdentityId)
+
+      var agent = this.agentsList.find( o => o.userId == body.creatorId)
+      var contentUri = ""
+      // all possible types:
+      /*
+       Album, AuthenticateMessage, AuthenticateResponse, Carousel,
+       CarouselMessage, Comment, ContactMessage, Content, Email,
+       FormMessage, FormResponse, HsmMessage, Link, ListMessage,
+       Media, Message, OutboundMessage, PaymentMessage, Photo,
+       PostbackMessage, PrivateTweet, PromptMessage, Question, Review,
+       ReviewResponse, RichLinkMessage, SelectMessage, Status, TemplateMessage,
+       TimePickerMessage, Tweet, Video, VideoCallRequestMessage
+      */
+      if (body.sourceType == "Facebook"){
+        if (body.type == "Photo" || body.type == "Album"){
+          contentUri = body.fbLink
+        }
+      }else if (body.sourceType == "WhatsApp"){
+        if (body.attachments.length > 0){
+          //console.log(record)
+          for (var attachment of body.attachments){
+            if (attachment.contentType == 'image/jpeg'){
+              contentUri = attachment.uri
+            }
+          }
+        }
+      }
+      var message = {
+        id: body.id,
+        creationTime: body.creationTime,
+        lastModifiedTime: body.lastModifiedTime,
+        authorIdentityId: body.authorIdentityId,
+        authorName: (identity != null) ? identity.displayName : "Unknown",
+        body: body.body,
+        contentUri: contentUri,
+        avatarUri: (identity != null) ? identity.avatarUri : "",
+        creatorId: body.creatorId,
+        agentName: (agent) ? agent.name : "",
+        status: body.status,
+        type: body.type,
+        synchronizationStatus: body.synchronizationStatus,
+        threadId: body.threadId,
+        inReplyToContentId: body.inReplyToContentId,
+        inReplyToAuthorIdentityId: body.inReplyToAuthorIdentityId,
+      }
+      this.newMessages.unshift(message)
     },
     // Notifications
     subscribeForNotification: async function(){
