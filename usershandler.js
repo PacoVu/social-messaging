@@ -149,16 +149,12 @@ var engine = User.prototype = {
               await this.listIdentities(p)
               await this.readAgentInfo(p)
               //await this.subscribeForNotification()
-              console.log("Read subscription id")
-              this.subscriptionId = fs.readFileSync("subscriptionid.txt", "utf8")
               console.log("subscriptionId", this.subscriptionId)
               if (!this.subscriptionId || this.subscriptionId != "")
                 await this.renewSubscription(p)
               else
                 await this.subscribeForNotification()
 
-              var check = fs.readFileSync("subscriptionid.txt", "utf8")
-              console.log("Check", check)
             } catch (e) {
               console.log("login() - Failed")
               console.error(e.message);
@@ -180,13 +176,24 @@ var engine = User.prototype = {
       }
     },
     readAccountInfo: async function(){
-      var query = `SELECT connected_channels FROM social_msg_accounts WHERE acct_id='${this.accountId}'`
+      var query = `SELECT subscription_id, connected_channels FROM social_msg_accounts WHERE acct_id='${this.accountId}'`
       var result = await pgdb.readAsync(query)
       if (result && result.rows.length > 0){
         this.connectedChannels = result.rows[0].connected_channels
+        this.subscriptionId = result.rows[0].subscription_id
         return "ok"
       }else{ // no history
         return null
+      }
+    },
+    updateSubscriptionId: async function(){
+      var query = `UPDATE social_msg_accounts SET subscription_id='${this.subscriptionId}' WHERE acct_id='${this.accountId}'`
+      //console.log(query)
+      var result = await pgdb.updateAsync(query)
+      if (!result){
+          console.error("Cannot update subscription id");
+      }else{
+          console.log("subscription id updated. DONE");
       }
     },
     registerNewChannel: async function(body, res){
@@ -1149,7 +1156,8 @@ var engine = User.prototype = {
           this.subscriptionId = jsonObj.id
           console.log("Subscription created")
           console.log(this.subscriptionId)
-          fs.writeFileSync("subscriptionid.txt", this.subscriptionId)
+          await this.updateSubscriptionId()
+          //fs.writeFileSync("subscriptionid.txt", this.subscriptionId)
         } catch (e) {
           console.log(e.message)
         }
@@ -1196,6 +1204,7 @@ var engine = User.prototype = {
         try{
           var r =  await p.delete(`/restapi/v1.0/subscription/${this.subscriptionId}`)
           console.log("Deleted subscription")
+          await this.updateSubscriptionId()
         }catch(e){
           console.log("Cannot delete notification subscription")
           console.log(e.message)
