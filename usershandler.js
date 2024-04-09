@@ -1,6 +1,7 @@
 var fs = require('fs')
 const pgdb = require('./db')
 const RCPlatform = require('./platform.js')
+const ChatGPT = require('./chatgpt.js')
 var router = require('./router');
 
 const Analytics = require('./analytics-engine.js')
@@ -18,40 +19,8 @@ function User(id) {
   this.subscriptionId = ""
   this.rc_platform = new RCPlatform(id)
   //this.analytics = new Analytics()
+  this.gpt = new ChatGPT()
   this.connectedChannels = []
-  /*
-    {
-      name: "Paco plumbing services",
-      id:"65c3fdd9527bf900079cefcb",
-      sourceType: "WhatsApp",
-      icon: "fa-whatsapp"
-    },
-    {
-      name: "GPS HVAC Services",
-      id:"65f1fabc80c3190007ab0fd9",
-      sourceType: "WhatsApp",
-      icon: "fa-whatsapp"
-    },
-    {
-      name: "Celebrations Cupcake Twitter",
-      id:"643e937543995c0007df2854",
-      sourceType: "Twitter",
-      icon: "fa-twitter"
-    },
-    {
-      name: "Purple Shop LinkedIn",
-      id:"64c831b164ffc7000754139e",
-      sourceType: "LinkedIn",
-      icon: "fa-linkedin"
-    },
-    {
-      name: "Celebrations Cupcake",
-      id:"643e932e77961f0007b0acb0",
-      sourceType: "FaceBook",
-      icon: "fa-facebook"
-    }
-  ]*/
-
   this.agentsList = []
   this.contactsList = []
   this.identities = []
@@ -138,13 +107,9 @@ var engine = User.prototype = {
 
               // check account settings. If no account settings force to create one from the settings page
               var result = await this.readAccountInfo()
-              console.log("result", result)
-              console.log("channels", this.connectedChannels)
-              /*
-              if (!result){
-                res.send('login success');
-              }
-              */
+              //console.log("result", result)
+              //console.log("channels", this.connectedChannels)
+
               // Read identities
               await this.listIdentities(p)
               await this.readAgentInfo(p)
@@ -449,10 +414,9 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
-      let newMessages = this.newMessages
       res.send({
           status: "ok",
-          newMessages: newMessages
+          newMessages: this.newMessages
       })
       this.newMessages = []
     },
@@ -1071,9 +1035,9 @@ var engine = User.prototype = {
       callback(null, 1)
     },
     processEventNotication: function(eventPayload){
-      return
+      //return
       console.log(eventPayload)
-      var body = eventPayload.body
+      var body = eventPayload.body.resource
       var synchronizationStatus = "Success"
       /*
       if (eventPayload.event == '/cx/social-messaging/v1/contents/Imported'){
@@ -1101,7 +1065,7 @@ var engine = User.prototype = {
           contentUri = body.fbLink
         }
       }else if (body.sourceType == "WhatsApp"){
-        if (body.attachments.length > 0){
+        if (body.hasAttachment && body.attachments.length > 0){
           //console.log(record)
           for (var attachment of body.attachments){
             if (attachment.contentType == 'image/jpeg'){
@@ -1110,9 +1074,10 @@ var engine = User.prototype = {
           }
         }
       }
+      var synchronizationStatus = "Success"
       var message = {
         id: body.id,
-        creationTime: body.creationTime,
+        creationTime:  eventPayload.body.issuedAt,//body.creationTime,
         lastModifiedTime: body.lastModifiedTime,
         authorIdentityId: body.authorIdentityId,
         authorName: (identity != null) ? identity.displayName : "Unknown",
@@ -1123,7 +1088,7 @@ var engine = User.prototype = {
         agentName: (agent) ? agent.name : "",
         status: body.status,
         type: body.type,
-        synchronizationStatus: body.synchronizationStatus,
+        synchronizationStatus: synchronizationStatus, //body.synchronizationStatus,
         threadId: body.threadId,
         inReplyToContentId: body.inReplyToContentId,
         inReplyToAuthorIdentityId: body.inReplyToAuthorIdentityId,
@@ -1269,6 +1234,38 @@ var engine = User.prototype = {
       }else{
         console.log("need login")
         res.send({status: "failed", message: "Not login"});
+      }
+    },
+    getAnswer: async function(message, res){
+      var endpoint = '/v1/chat/completions'
+      var bodyParams =
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            "role": "user",
+            "content": message
+          }
+        ]
+      }
+      try{
+        var response = await this.gpt.post(endpoint, bodyParams)
+        //console.log(response)
+        var jsonObj = JSON.parse(response)
+
+        //console.log(jsonObj.choices[0].message.content)
+        var response = {
+          status: "ok",
+          message: jsonObj.choices[0].message.content
+        }
+        res.send(response)
+      }catch(e){
+        console.log("ChatGPT error", e)
+        var response = {
+          status: "error",
+          message: e
+        }
+        res.send(response)
       }
     }
 }

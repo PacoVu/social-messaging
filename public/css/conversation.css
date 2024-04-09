@@ -394,3 +394,7 @@ ul {
 .reply:hover {
   color: orange;
 }
+
+.auto_height { /* CSS */
+  width: 100%;
+}

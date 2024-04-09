@@ -25,8 +25,6 @@ function init(){
   mainMenuItem = "conversations"
   $(`#${mainMenuItem}`).addClass("active")
 
-  //readContacts()
-
   $('#send-text').keyup(function(e) {
     if(e.keyCode == 13) {
       $(this).trigger("enterKey");
@@ -48,6 +46,11 @@ function init(){
   $( "#todatepicker" ).datepicker('setDate', new Date());
 
   readMessageStore("")
+}
+
+function auto_height(elem) {  /* javascript */
+    elem.style.height = '1px';
+    elem.style.height = `${elem.scrollHeight}px`;
 }
 
 function setElementsHeight(){
@@ -132,11 +135,11 @@ function sendTextMessage(message){
       //console.log(res)
       var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
       convoGroup.conversations.unshift(res.message)
-
+/*
       window.setTimeout(function(msgId){
         checkSendMessageStatus(msgId)
       },1000, res.message.id)
-
+*/
       processResult()
     }else if (res.status == "error"){
       _alert(res.message, "Error")
@@ -210,10 +213,10 @@ function pollNewMessages(){
       }
       if (res.newMessages.length)
         processResult()
-      console.log("New message count:", res.newMessages.length)
+      //console.log("New message count:", res.newMessages.length)
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
-      },3000)
+      },5000)
     }else{
       window.setTimeout(function(){
         window.location.href = "/relogin"
@@ -266,17 +269,18 @@ function readMessageStore(token){
     dateTo: dateToStr,
     perPage: $('#page-size').val()
   }
-  //configs['dateFrom'] = dateFromStr
-  //configs['dateTo'] = dateToStr
-  //console.log(`from: ${dateFromStr}`)
-  //console.log(`to: ${dateToStr}`)
+
   if (token != ""){
     configs['pageToken'] = token
     pageToken = token
   }else{
     window.clearTimeout(pollingTimer)
+    pollingTimer = null
   }
-
+  if (pollingTimer){
+    window.clearTimeout(pollingTimer)
+    pollingTimer = null
+  }
   configs['direction'] = $('#direction').val();
 
   var fromChannel = $('#my-channels').val()
@@ -308,11 +312,11 @@ function readMessageStore(token){
       //console.log(messageList)
       pageTokens = res.pageTokens
       processResult()
-      /* closed until notification payload issues are fixed
+      // closed until notification payload issues are fixed
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
-      },3000)
-      */
+      },5000)
+      //
     }else if (res.status == "error"){
       $("#conversation").html("")
       _alert(res.message, "Error")
@@ -462,7 +466,7 @@ function showConversation(selectedConvo, name){
         if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
           params.to = msg.id
         }
-        html += createConversationItem(msg, false)
+        html += createConversationItem(msg, true)
       }
       if (params.to == ""){
         // disable the input for now. Should be enable for initiating a new message!
@@ -480,6 +484,59 @@ function showConversation(selectedConvo, name){
     $("#conversation").html("No content")
     $("#message-input").hide()
   }
+}
+
+function createConversationItem_timePeriod(item, conversation){
+  //console.log("item", item)
+  var line = ""
+  var date = new Date(item.creationTime)
+  var createdTimestamp = date.getTime() //- timeOffset
+  var createdDate = new Date (createdTimestamp)
+  let dateOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }
+  var createdDateStr = createdDate.toLocaleDateString("en-US", dateOptions)
+  let timeOptions = { hour12: false }
+  var timeStr =  createdDate.toLocaleTimeString("en-US", timeOptions).substr(0, 5)
+
+  if (dateStr != createdDateStr){
+    dateStr = createdDateStr
+    // create date separation
+    line += `<li class="separator"><div class="date-line">----- ${dateStr} -----</div></li>`
+  }
+
+  var nowTimestamp = new Date().getTime()
+  var ageInSeconds = (nowTimestamp - createdTimestamp) / 1000
+  var age = formatMessageAge(ageInSeconds)
+
+  var msg = (item.body != null) ? item.body.replace(/\r?\n/g, "<br>") : ""
+  if (item.status == "UserInitiated" || item.status == "UserReply" || item.status == "PendingApproval"){ // Outbound
+    line += '<li class="chat-right">'
+    if (item.synchronizationStatus == "Success"){
+      line += `<div class="chat-text">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
+    }else if (item.synchronizationStatus == "ExportPending"){
+      line += `<div class="chat-text warning">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
+    }else if (item.synchronizationStatus == "ExportAborted"){
+      line += `<div class="chat-text error">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
+    }
+    if (item.avatarUri != ""){
+      line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
+    }
+    //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
+  }else{
+    line += '<li class="chat-left">'
+    line += `<div class="chat-avatar chat-name">${item.authorName}<br>${age}</div>`
+
+    if (item.contentUri != ""){
+      //console.log("contenUri", item.contentUri)
+      line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
+    }else
+      line += `<div class="chat-text">${msg}</div>`
+  }
+
+  line += '</li>'
+  return line
 }
 
 function createConversationItem(item, conversation){
@@ -522,12 +579,40 @@ function createConversationItem(item, conversation){
     if (item.contentUri != ""){
       //console.log("contenUri", item.contentUri)
       line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
-    }else
+    }else{
       line += `<div class="chat-text">${msg}</div>`
+      if (conversation)
+        line += `<a href="#" class="chat-avatar" onclick="getAnswer('${msg}')"><img src="/img/bot.png" style="width: 30px; height: 35px" /></a>`
+    }
   }
 
   line += '</li>'
   return line
+}
+
+function getAnswer(msg){
+  //$("#send-text").val(msg)
+  //return
+    var bodyParams = {
+      message: msg
+    }
+    var url = 'get-answer'
+    var posting = $.post( url, bodyParams );
+    posting.done(function( res ) {
+      if (res.status == "ok") {
+        sendTextMessage(res.message)
+        //$("#send-text").val(res.message)
+        //$("#send-text").focus()
+      }else if (res.status == "error"){
+        _alert(res.message, "Error")
+      }else{
+        if (res.message)
+          _alert(res.message, "Error")
+      }
+    });
+    posting.fail(function(response){
+      _alert(response.statusText, "Error");
+    });
 }
 
 function getContactName(number){
@@ -558,6 +643,37 @@ function creationTime(creationTime){
   let dateOptions = { month: 'short', day: 'numeric' }
   var createdDateStr = createdDate.toLocaleDateString("en-US", dateOptions)
   return createdDateStr
+}
+
+const MONTH = 3600 * 24 * 30
+const DAY = 3600 * 24
+const HOUR = 3600
+const MIN = 60
+
+function formatMessageAge(ageInSeconds){
+  let now = new Date().getTime() / 1000
+  var age = Math.floor(ageInSeconds / MONTH)
+
+  if (age >= 1){
+    return `${age} ${(age > 2) ? " months" : " month"}`
+  }else{
+    age = Math.floor(ageInSeconds / DAY)
+    if (age >= 1){
+      return `${age} ${(age > 2) ? " days" : " day"}`
+    }else{
+      age = Math.floor(ageInSeconds / HOUR)
+      if (age >= 1){
+        return `${age} ${(age > 2) ? " hours" : " hour"}`
+      }else{
+        age = Math.floor(ageInSeconds / MIN)
+        if (age >= 1){
+          return `${age} ${(age > 2) ? " mins" : " min"}`
+        }else{
+          return `${age} ${(age > 2) ? " secs" : " sec"}`
+        }
+      }
+    }
+  }
 }
 
 function logout(){

@@ -171,9 +171,12 @@
             <div id="message-input" style="display: none">
               <!--input type="text" id="send-text" style="height: 40px" size="auto" placeholder="Enter text here"></input-->
               <div data-emojiarea data-type="unicode" data-global-picker="false">
-                <!--span class="emoji-button">&#x1f604;</span-->
-                <span class="emoji-button"><img class="medium-icon" src="/img/emoji.png"></img></span>
+                <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
+
                 <input type="text" id="send-text" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
+                <!--
+                <textarea type="text" id="send-text"  class="form-control auto_height" rows="1" onInput="auto_height(this)" style="display: inline;height: 40px" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></textarea>
+                -->
               </div>
             </div>
           </div>
