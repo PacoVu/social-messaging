@@ -193,13 +193,19 @@ function pollNewMessages(){
   var getting = $.get( url );
   getting.done(function( res ) {
     if (res.status == "ok"){
+      // check if new message is the current open channel
+      var newMessages = false
       for (var msg of res.newMessages){
+        if (currentSelectedchannel != msg.channelId){
+          console.log("Implement notify new messages on another channel")
+          continue
+        }
+        newMessages = true
         var convoGroup = messageList.find(o => o.conversationId === msg.threadId)
         if (convoGroup){
             let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
             if (msgIndex >= 0){
                 convoGroup.conversations[msgIndex] = msg
-                //processResult()
             }else{
               convoGroup.conversations.unshift(msg)
             }
@@ -211,12 +217,12 @@ function pollNewMessages(){
           messageList.unshift(newConvo)
         }
       }
-      if (res.newMessages.length)
+      if (res.newMessages.length && newMessages)
         processResult()
       //console.log("New message count:", res.newMessages.length)
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
-      },5000)
+      },3000)
     }else{
       window.setTimeout(function(){
         window.location.href = "/relogin"
@@ -281,7 +287,8 @@ function readMessageStore(token){
     window.clearTimeout(pollingTimer)
     pollingTimer = null
   }
-  configs['direction'] = $('#direction').val();
+
+  //configs['direction'] = $('#direction').val();
 
   var fromChannel = $('#my-channels').val()
   //if ($('#my-channels').length > 0){
@@ -405,7 +412,15 @@ function createConversationsList(totalMsg){
     html += `<div id='${convoGroup.conversationId}' class='recipient-item' onclick='showConversation("${convoGroup.conversationId}", "${name}")'>`
     if (avatarUri)
       html += `<span class="avatar"><img class="avatar" src="${avatarUri}"</img></span>`
-    html += `<span class="recipient-info">${name}</span><span class="message-count">${convoGroup.conversations.length}</span>`
+    var inboundCount = 0
+    var outboundCount = 0
+    for (var item of convoGroup.conversations){
+      if (item.status == "New" || item.status == "Ignored" || item.status == "Replied")
+        inboundCount++
+      else
+        outboundCount++
+    }
+    html += `<span class="recipient-info">${name}</span><span class="message-count">${inboundCount}/${outboundCount}</span>`
     html += "</div>"
   }
   $("#recipient-list").html(html)

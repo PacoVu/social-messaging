@@ -137,7 +137,7 @@
             <!--button id="readmessagestore" class="btn-rc inline" onclick="readMessageStore()">Read</button-->
             <a href="#" onclick="readMessageStore();return false;">Read</a>
           </div>
-
+<!--
           <div class="block_space">
             <label class="label-input" for="direction">Direction</label>
             <select class="selectpicker filter-select" onchange="readMessageStore()" data-width="100" id="direction" style="display: inline" title="Direction">
@@ -146,12 +146,13 @@
               <option value="Both" selected>Both</option>
             </select>
           </div>
+-->
         </div>
         <hr style="margin: 2px !important;border: 2px solid white"></hr>
 
         <div class="block_space">
           <!--input type="text" class="form-control search-input" style="display: inline;" placeholder="Search recipient" value="" id="search-number" onfocus="clearSearch(this)" oninput="searchRecipientNumber(this)"></input-->
-          <input type="button" class="form-control" style="display: inline;width: 50px;" value="+" onclick="openInitiateMessage()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Initiate a new conversation"></input>
+          <input type="button" class="form-control" style="display: inline;width: 150px;" value="Start a conversation" onclick="openInitiateMessage()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Initiate a new conversation"></input>
         </div>
 
         <div id="recipient-list" class="scrollable recipient-list"></div>

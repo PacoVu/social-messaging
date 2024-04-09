@@ -333,6 +333,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                  channelId: jsonObj.sourceId
                 }
           res.send({
               status:"ok",
@@ -393,6 +394,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                  channelId: jsonObj.sourceId
                 }
           res.send({
               status:"ok",
@@ -447,6 +449,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                  channelId: jsonObj.sourceId
                 }
           res.send({
               status:"ok",
@@ -584,6 +587,7 @@ var engine = User.prototype = {
           threadId: record.threadId,
           inReplyToContentId: record.inReplyToContentId,
           inReplyToAuthorIdentityId: record.inReplyToAuthorIdentityId,
+          channelId: record.sourceId
         }
         var group = conversationGroups.find(o => o.conversationId == record.threadId)
         if (group){
@@ -1036,7 +1040,7 @@ var engine = User.prototype = {
     },
     processEventNotication: function(eventPayload){
       //return
-      console.log(eventPayload)
+      //console.log(eventPayload)
       var body = eventPayload.body.resource
       var synchronizationStatus = "Success"
       /*
@@ -1065,11 +1069,13 @@ var engine = User.prototype = {
           contentUri = body.fbLink
         }
       }else if (body.sourceType == "WhatsApp"){
-        if (body.hasAttachment && body.attachments.length > 0){
-          //console.log(record)
-          for (var attachment of body.attachments){
-            if (attachment.contentType == 'image/jpeg'){
-              contentUri = attachment.uri
+        if (body.hasAttachment) {
+          if (body.hasOwnProperty('attachments') && body.attachments.length > 0){
+            //console.log(record)
+            for (var attachment of body.attachments){
+              if (attachment.contentType == 'image/jpeg'){
+                contentUri = attachment.uri
+              }
             }
           }
         }
@@ -1092,6 +1098,7 @@ var engine = User.prototype = {
         threadId: body.threadId,
         inReplyToContentId: body.inReplyToContentId,
         inReplyToAuthorIdentityId: body.inReplyToAuthorIdentityId,
+        channelId: body.sourceId
       }
       this.newMessages.unshift(message)
     },
