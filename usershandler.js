@@ -90,7 +90,6 @@ var engine = User.prototype = {
           req.session.extensionId = extensionId;
 
           //thisUser.deleteAllRegisteredWebHookSubscriptions()
-
           var p = await this.rc_platform.getPlatform(this.extensionId)
           if (p){
             try {
@@ -468,7 +467,6 @@ var engine = User.prototype = {
           message: "You have been logged out. Please login again."
         })
       }
-
     },
     readMessageList: function (req, res){
       console.log("readMessageList")
@@ -523,7 +521,8 @@ var engine = User.prototype = {
           res.send(response)
 
         } catch (e) {
-          console.log("_readMessageList()")
+          console.log("readParams", readParams)
+          console.log("_readMessageList()", e.message)
           res.send({
               status: "error",
               message: e.message
@@ -1038,8 +1037,65 @@ var engine = User.prototype = {
       this.subscriptionId = ""
       callback(null, 1)
     },
+    _readNotifiedMessage: async function(contentId){
+      console.log("_readNotifiedMessage")
+      var endpoint = `/cx/social-messaging/v1/contents/${contentId}`
+      var p = await this.rc_platform.getPlatform(this.extensionId)
+      if (p){
+        try {
+          var resp = await p.get(endpoint)
+          var jsonObj = await resp.json()
+          var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
+          var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
+          var contentUri = ""
+          if (jsonObj.sourceType == "Facebook"){
+            if (jsonObj.type == "Photo" || jsonObj.type == "Album"){
+              contentUri = jsonObj.fbLink
+            }
+          }else if (jsonObj.sourceType == "WhatsApp"){
+            if (jsonObj.hasOwnProperty('attachments') && jsonObj.attachments.length > 0){
+              //console.log(record)
+              for (var attachment of jsonObj.attachments){
+                if (attachment.contentType == 'image/jpeg'){
+                  contentUri = attachment.uri
+                }
+              }
+            }
+          }
+          var message = {
+                  id: jsonObj.id,
+                  creationTime: jsonObj.creationTime,
+                  lastModifiedTime: jsonObj.lastModifiedTime,
+                  authorName: (identity != null) ? identity.displayName : "Unknown",
+                  authorIdentityId: jsonObj.authorIdentityId,
+                  body: jsonObj.body,
+                  contentUri: contentUri,
+                  avatarUri: (identity != null) ? identity.avatarUri : "",
+                  creatorId: jsonObj.creatorId,
+                  agentName: (agent) ? agent.name : "",
+                  synchronizationStatus: jsonObj.synchronizationStatus,
+                  status: jsonObj.status,
+                  type: jsonObj.type,
+                  threadId: jsonObj.threadId,
+                  inReplyToContentId: jsonObj.inReplyToContentId,
+                  inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                  channelId: jsonObj.sourceId
+                }
+          this.newMessages.unshift(message)
+        } catch (e) {
+          console.log("Cannot read notified message.")
+        }
+      }else{
+        console.log("You have been logged out. Please login again.")
+      }
+    },
     processEventNotication: function(eventPayload){
-      //return
+      // Workaround solution
+      //console.log("payload", eventPayload.body)
+      var contentId = eventPayload.body.resource.id
+      this._readNotifiedMessage(contentId)
+      return
+      // The following code can be used only after the notifucation payload is sufficient
       //console.log(eventPayload)
       var body = eventPayload.body.resource
       var synchronizationStatus = "Success"

@@ -4,6 +4,7 @@ var timeOffset = 0
 var dateStr = ""
 var lastVisited = new Date().getTime() - 604800000
 //var selectedRecipient = undefined
+var newItems = 0
 var pageTokens = undefined
 var currentSelectedItem = "all"
 var currentSelectedchannel = ""
@@ -197,10 +198,31 @@ function pollNewMessages(){
       var newMessages = false
       for (var msg of res.newMessages){
         if (currentSelectedchannel != msg.channelId){
-          console.log("Implement notify new messages on another channel")
+          var channel = $(`#my-channels option[value="${msg.channelId}"]`)
+          if (channel){
+            var text = channel.text()
+            var textParts = text.split("+")
+            var count = 1
+            newItems++
+            var nameWithNewItems = ''
+            if (textParts.length > 1){
+              count = parseInt(textParts[1].trim())
+              count += 1
+              nameWithNewItems = `${textParts[0]} +${count}`
+            }else{
+              nameWithNewItems = `${textParts[0]} +1`
+            }
+            $(`#my-channels option[value="${msg.channelId}"]`).text(nameWithNewItems)
+            $('#my-channels').selectpicker('refresh');
+          }
+          if (newItems > 0)
+            $("#new-item-indicator").html(`+${newItems}`)
+          else
+            $("#new-item-indicator").html('')
           continue
-        }
-        newMessages = true
+        }else
+          newMessages = true
+
         var convoGroup = messageList.find(o => o.conversationId === msg.threadId)
         if (convoGroup){
             let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
@@ -299,6 +321,23 @@ function readMessageStore(token){
     //var channels = JSON.parse(window.channels)
     //configs['sourceId'] = `["${channels[0].id}"]`
     return
+  }
+  var channel = $(`#my-channels option[value="${fromChannel}"]`)
+  if (channel){
+    var text = channel.text()
+    var textParts = text.split("+")
+    if (textParts.length > 1){
+      var nameWithNewItems = textParts[0].trimEnd()
+      console.log(nameWithNewItems)
+      $(`#my-channels option[value="${fromChannel}"]`).text(nameWithNewItems)
+      $('#my-channels').selectpicker('refresh');
+      var count = parseInt(textParts[1].trim())
+      newItems -= count
+      if (newItems > 0)
+        $("#new-item-indicator").html(`+${newItems}`)
+      else
+        $("#new-item-indicator").html('')
+    }
   }
   //alert(configs.sourceId)
   if (currentSelectedchannel != fromChannel){

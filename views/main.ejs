@@ -117,6 +117,7 @@
               <label class="label-input" for="my-channels">Channels</label>
               <input type="text" id="my-channels" size="15" class="form-control text-input" readonly style="display:none" value="<%- channels[0].id %>"></input><span><%= channels[0].name %></span>
             <% } %>
+            <span class="error" id="new-item-indicator"></span>
           </div>
           <div class="block_space">
             <label class="label-input" for="page-size">Max # messages</label>
