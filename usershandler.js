@@ -175,6 +175,9 @@ var engine = User.prototype = {
         case "FaceBook":
           icon = "fa-facebook"
           break;
+        case "Apple":
+          icon = "fa-apple"
+          break;
         default:
           break
       }
@@ -523,6 +526,8 @@ var engine = User.prototype = {
         } catch (e) {
           console.log("readParams", readParams)
           console.log("_readMessageList()", e.message)
+          var obj = e.response.headers
+          console.log(`_readMessageList() Request id: ${obj.get('rcrequestid')}`)
           res.send({
               status: "error",
               message: e.message
@@ -1127,7 +1132,6 @@ var engine = User.prototype = {
       }else if (body.sourceType == "WhatsApp"){
         if (body.hasAttachment) {
           if (body.hasOwnProperty('attachments') && body.attachments.length > 0){
-            //console.log(record)
             for (var attachment of body.attachments){
               if (attachment.contentType == 'image/jpeg'){
                 contentUri = attachment.uri
