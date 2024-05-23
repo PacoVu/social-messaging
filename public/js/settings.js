@@ -21,9 +21,14 @@ function showChannelInfo(){
   var channelId = $("#connected-channels").val()
   var channel = channels.find(o => o.id == channelId)
   if (channel){
+    console.log(channel)
     var html = `<div><label class="label-input">Name:</label>${channel.name}</div>`
     html += `<div><label class="label-input">Id:</label>${channel.id}</div>`
     html += `<div><label class="label-input">Type:</label>${channel.sourceType}</div>`
+    if (channel.sourceType == "WhatsApp")
+      html += `<div><label class="label-input">Phone number:</label>${channel.contactId}</div>`
+    else if (channel.sourceType == "Apple")
+      html += `<div><label class="label-input">Apple Id:</label>${channel.contactId}</div>`
     $("#channel-info").html(html)
     $("#display-channel").show()
   }else{

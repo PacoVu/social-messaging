@@ -247,6 +247,7 @@ function openChannelRegistration(){
             sourceType: $("#all-channels").val(),
             name: $("#channel-name").val(),
             id: $("#channel-id").val(),
+            contactId: $("#channel-number").val(),
           }
 
           if (params.name == ""){

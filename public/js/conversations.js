@@ -10,6 +10,7 @@ var currentSelectedItem = "all"
 var currentSelectedchannel = ""
 var pollingTimer = null
 var contactList = []
+//var channels = undefined
 var params = {
   sourceId: "",
   to: "",
@@ -46,6 +47,7 @@ function init(){
   $( "#fromdatepicker" ).datepicker('setDate', new Date(past30Days));
   $( "#todatepicker" ).datepicker('setDate', new Date());
 
+  //channels = JSON.parse(window.channels)
   readMessageStore("")
 }
 
@@ -343,6 +345,20 @@ function readMessageStore(token){
   if (currentSelectedchannel != fromChannel){
     currentSelectedchannel = fromChannel
     currentSelectedItem = "all"
+    //
+    var channels = JSON.parse(window.channels)
+    var channel = channels.find( o => o.id == currentSelectedchannel)
+    if (channel){
+      switch (channel.sourceType) {
+        case "WhatsApp":
+          $("#contact-id").html(formatPhoneNumber(channel.contactId))
+          $("#contact-id-block").show()
+          break;
+        default:
+        $("#contact-id-block").hide()
+          break;
+      }
+    }
   }
   params.sourceId = configs.sourceId
   messageList = []

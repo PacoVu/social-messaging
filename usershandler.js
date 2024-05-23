@@ -184,6 +184,7 @@ var engine = User.prototype = {
       var newChannel = {
         name: body.name,
         id: body.id,
+        contactId: (body.contactId) ? body.contactId : "",
         sourceType: body.sourceType,
         icon: icon
       }
