@@ -12,6 +12,18 @@ async function createAccountTable() {
       console.log("Error creating table")
   }else{
       console.log("createAccountTable DONE")
+      await createUserTable()
+  }
+}
+
+async function createUserTable() {
+  var query = 'CREATE TABLE IF NOT EXISTS social_msg_users '
+  query += "(user_id VARCHAR(16) PRIMARY KEY, acct_id VARCHAR(16) NOT NULL, displayed_channels JSONB DEFAULT '[]')"
+  var result =await pgdb.createTableAsync(query)
+  if (!result) {
+      console.log("Error creating table")
+  }else{
+      console.log("createUserTable DONE")
   }
 }
 
@@ -231,6 +243,12 @@ var router = module.exports = {
     if (index < 0)
       return this.forceLogin(req, res)
     users[index].sendMessage(req, res)
+  },
+  saveUserSettings: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].saveUserSettings(req.body, res)
   },
   registerNewChannel: function(req, res){
     var index = getUserIndex(req.session.userId)

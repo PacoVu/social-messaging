@@ -120,6 +120,15 @@ app.post('/create-messaging-analytics', function (req, res) {
   }
 })
 
+app.post('/save-user-settings', function (req, res) {
+  //console.log('getMessagingAnalytics')
+  if (req.session.extensionId != 0)
+    router.saveUserSettings(req, res)
+  else{
+    res.render('index')
+  }
+})
+
 // get-answer
 app.post('/get-answer', function (req, res) {
   //console.log('getMessagingAnalytics')

@@ -42,6 +42,7 @@
     <script>
       window.userName = '<%- userName %>'
       window.channels = '<%- JSON.stringify(channels) %>'
+      window.displayedChannels = '<%- JSON.stringify(displayedChannels) %>'
       window.contacts = '<%- JSON.stringify(contacts) %>'
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();

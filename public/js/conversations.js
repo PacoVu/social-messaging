@@ -10,7 +10,7 @@ var currentSelectedchannel = ""
 var pollingTimer = null
 var contactList = []
 var channels = undefined
-
+var displayedChannels = []
 var conversationHeight = 50
 
 function init(){
@@ -43,16 +43,26 @@ function init(){
   $( "#fromdatepicker" ).datepicker('setDate', new Date(past30Days));
   $( "#todatepicker" ).datepicker('setDate', new Date());
   */
+  //console.log(window.channels)
   channels = JSON.parse(window.channels)
-  //var channel = channels.find( o => o.id == currentSelectedchannel)
-  //channels = JSON.parse(window.channels)
-
+  //displayedChannels = []
+  //console.log(window.displayedChannels)
+  //if (displayedChannels.length == 0)
+  displayedChannels = JSON.parse(window.displayedChannels)
+  //console.log(displayedChannels)
+  if (displayedChannels.length > 0){
+    for (var channel of displayedChannels){
+      createChannelContainer(channel)
+      readMessageStore(channel, "")
+    }
+  }else{
+    console.log("No displayed channel")
+  }
 }
 
-var displayedChannel = []
 function addSelectedChannel(){
   var selectedChannel = $('#my-channels').val()
-  if (displayedChannel.find(o => o.id === selectedChannel)){
+  if (displayedChannels.find(o => o.id === selectedChannel)){
     _alert("Already displayed")
     return
   }
@@ -64,11 +74,42 @@ function addSelectedChannel(){
     message: ""
   }
   channel['currentSelectedItem'] = `all-${selectedChannel}`
-  displayedChannel.push(channel)
+  displayedChannels.push(channel)
+  saveUserSettings()
   createChannelContainer(channel)
   readMessageStore(channel, "")
 }
 
+function saveUserSettings(){
+    let url = 'save-user-settings'
+    var updatedChannels = []
+    for (var ch of displayedChannels){
+      ch.messageList = []
+      updatedChannels.push(ch)
+    }
+    var bodyParams = {
+      displayedChannels: JSON.stringify(updatedChannels)
+    }
+    var posting = $.post( url, bodyParams );
+    posting.done(function( res ) {
+      if (res.status == "ok"){
+        console.log(res)
+      }else if (res.status == "error"){
+        _alert(res.message, "Error")
+      }else{
+        if (res.message)
+          _alert(res.message, "Error")
+        else
+          _alert("You have been logged out. Please login again.", "Error")
+        window.setTimeout(function(){
+          window.location.href = "/relogin"
+        },8000)
+      }
+    });
+    posting.fail(function(response){
+      _alert(response, "Error");
+    });
+}
 
 function createChannelContainer(channel){
   var mainContainer = $("#container")
@@ -187,9 +228,11 @@ function createChannelContainer(channel){
 function closeTab(channelId){
   var channel = $(`#main-${channelId}`)
   channel.remove()
-  var index = displayedChannel.findIndex(o => o.id === channelId)
-  if (index >= 0)
-    displayedChannel.splice(index, 1)
+  var index = displayedChannels.findIndex(o => o.id === channelId)
+  if (index >= 0){
+    displayedChannels.splice(index, 1)
+    saveUserSettings()
+  }
 }
 
 function auto_height(elem) {  /* javascript */
@@ -270,7 +313,7 @@ function sendTextMessage(channelId, message){
     $(`#send-text-${channel.id}`).focus()
     return _alert("Please enter text message!")
   }
-  var channel = displayedChannel.find(o => o.id === channelId)
+  var channel = displayedChannels.find(o => o.id === channelId)
   if (channel){
     if (channel.params.to == ""){
       return _alert("please select a message to reply")
@@ -347,7 +390,7 @@ function pollNewMessages(){
       // check if new message is the current open channel
       var newMessages = false
       for (var msg of res.newMessages){
-        var channel = displayedChannel.find(o => o.id === msg.channelId)
+        var channel = displayedChannels.find(o => o.id === msg.channelId)
         if (channel){
           var convoGroup = channel.messageList.find(o => o.conversationId === msg.threadId)
           if (convoGroup){
@@ -600,7 +643,7 @@ function createConversationsList(channel, totalMsg){
 function showConversation(channelId, selectedConvo, name){
   //console.log("recipient", selectedConvo)
   //console.log("channel id", channelId)
-  var channel = displayedChannel.find(o => o.id === channelId)
+  var channel = displayedChannels.find(o => o.id === channelId)
 
   $(`#${channel.currentSelectedItem}`).removeClass("active");
 

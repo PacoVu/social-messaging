@@ -21,6 +21,7 @@ function User(id) {
   //this.analytics = new Analytics()
   this.gpt = new ChatGPT()
   this.connectedChannels = []
+  this.displayedChannels = []
   this.agentsList = []
   this.contactsList = []
   this.identities = []
@@ -42,10 +43,12 @@ var engine = User.prototype = {
       return this.rc_platform.getSDKPlatform()
     },
     loadConversationPage: async function(res){
+      await this.readUserSettings()
       if (this.connectedChannels.length > 0){
         res.render('main', {
           userName: this.getUserName(),
           channels: this.connectedChannels,
+          displayedChannels: this.displayedChannels,
           contacts: this.contactsList
         })
       }else{
@@ -138,6 +141,38 @@ var engine = User.prototype = {
         res.send('No Auth code');
         callback("error", null)
       }
+    },
+    readUserSettings: async function(){
+      var query = `SELECT displayed_channels FROM social_msg_users WHERE user_id='${this.extensionId}'`
+      var result = await pgdb.readAsync(query)
+      if (result && result.rows.length > 0){
+        this.displayedChannels = result.rows[0].displayed_channels
+        return "ok"
+      }else{ // no history
+        return null
+      }
+    },
+    saveUserSettings: async function(body, res){
+      this.displayedChannels = JSON.parse(body.displayedChannels)
+      var channelsStr = JSON.stringify(this.displayedChannels)
+      var query = "INSERT INTO social_msg_users (user_id, acct_id, displayed_channels)"
+      query += " VALUES ($1,$2,$3)"
+      var values = [this.extensionId, this.accountId, channelsStr]
+      query += ` ON CONFLICT (user_id) DO UPDATE SET displayed_channels='${channelsStr}'`
+      //console.log(query)
+      var result = await pgdb.insertAsync(query, values)
+      var response = {
+        status: "ok",
+        message: "Saved user settings successfully."
+      }
+      if (!result){
+          console.error("Cannot update displayed channels");
+          response.status = "error"
+          response.message = "Cannot save user settings"
+      }else{
+          console.log("Save user settings. DONE");
+      }
+      res.send(response)
     },
     readAccountInfo: async function(){
       var query = `SELECT subscription_id, connected_channels FROM social_msg_accounts WHERE acct_id='${this.accountId}'`
