@@ -84,10 +84,11 @@ function addSelectedChannel(){
 
 function saveUserSettings(){
     let url = 'save-user-settings'
-    var updatedChannels = []
+    let updatedChannels = []
     for (var ch of displayedChannels){
-      ch.messageList = []
-      updatedChannels.push(ch)
+      let c = {...ch}
+      c.messageList = []
+      updatedChannels.push(c)
     }
     var bodyParams = {
       displayedChannels: JSON.stringify(updatedChannels)
