@@ -186,9 +186,11 @@ var engine = User.prototype = {
         id: body.id,
         contactId: (body.contactId) ? body.contactId : "",
         sourceType: body.sourceType,
-        icon: icon
+        icon: icon,
+        avatarUri: body.avatarUri
       }
-
+      // Apple https://advanced-messaging-demo-1.digital.ringcentral.com/files/identities/d3a/512/4b3f2e9e9898c095aa58435a35/avatar/apple.jpeg?953a95
+      // WhatsApp https://advanced-messaging-demo-1.digital.ringcentral.com/files/identities/acf/ab0/ee458d77da52dcf29b2b861ec2/avatar/427531744_373981938889034_3503577298326220522_n.jpg?0c8da4
       this.connectedChannels.push(newChannel)
       var channelsStr = JSON.stringify(this.connectedChannels)
       var query = "INSERT INTO social_msg_accounts (acct_id, subscription_id, connected_channels)"
@@ -312,7 +314,7 @@ var engine = User.prototype = {
               body: body.message,
               autoSubmitted: true,
               public: false,
-              sourceId: body.sourceId
+              sourceId: body.channelId
             }
           console.log(bodyParams)
           var resp = await p.post(endpoint, bodyParams)
@@ -357,6 +359,63 @@ var engine = User.prototype = {
         })
       }
     },
+    initiateWAConversation: async function(req, res){
+      var body = req.body
+      var p = await this.rc_platform.getPlatform(this.extensionId)
+      if (p){
+        try{
+          let endpoint = `/cx/social-messaging/v1/contents`
+          console.log(endpoint)
+          var bodyParams = {
+              to: [body.to],
+              //autoSubmitted: false,
+              public: false,
+              sourceId: body.channelId,
+              templateName: body.templateName,
+              templateLanguage: body.templateLanguage,
+              components: JSON.parse(body.components)
+            }
+          var resp = await p.post(endpoint, bodyParams)
+          var jsonObj = await resp.json()
+          var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
+          var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
+          var message = {
+                  id: jsonObj.id,
+                  creationTime: jsonObj.creationTime,
+                  lastModifiedTime: jsonObj.lastModifiedTime,
+                  authorName: (identity != null) ? identity.displayName : "Unknown",
+                  authorIdentityId: jsonObj.authorIdentityId,
+                  body: jsonObj.structuredContent.subtitle,
+                  contentUri: "",
+                  avatarUri: (identity != null) ? identity.avatarUri : "",
+                  creatorId: jsonObj.creatorId,
+                  agentName: (agent) ? agent.name : "",
+                  synchronizationStatus: jsonObj.synchronizationStatus,
+                  status: jsonObj.status,
+                  threadId: jsonObj.threadId,
+                  inReplyToContentId: jsonObj.inReplyToContentId,
+                  inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
+                  channelId: jsonObj.sourceId
+                }
+          res.send({
+              status:"ok",
+              message: message
+          })
+        }catch(e){
+          console.log(e.message)
+          res.send({
+              status:"error",
+              message: e.message
+          })
+        }
+      }else{
+        console.log("initiateWAConversation() - You have been logged out. Please login again.")
+        res.send({
+          status: "failed",
+          message: "You have been logged out. Please login again."
+        })
+      }
+    },
     sendMessage: async function(req, res){
       var body = req.body
       var p = await this.rc_platform.getPlatform(this.extensionId)
@@ -373,7 +432,7 @@ var engine = User.prototype = {
               autoSubmitted: true,
               public: false,
               //sourceType: 'WhatsApp',
-              sourceId: body.sourceId
+              sourceId: body.id
             }
           var resp = await p.post(endpoint, bodyParams)
           var jsonObj = await resp.json()
@@ -551,6 +610,7 @@ var engine = User.prototype = {
 
         var agent = this.agentsList.find( o => o.userId == record.creatorId)
         var contentUri = ""
+        var body = record.body
         // all possible types:
         /*
          Album, AuthenticateMessage, AuthenticateResponse, Carousel,
@@ -574,6 +634,11 @@ var engine = User.prototype = {
               }
             }
           }
+          if (record.type == "OutboundMessage"){
+            if (record.hasOwnProperty("structuredContent")){
+              body = record.structuredContent.subtitle
+            }
+          }
         }else if (record.sourceType == "AppleMessagesForBusiness"){
           if (record.attachments.length > 0){
             //console.log(record)
@@ -584,13 +649,14 @@ var engine = User.prototype = {
             }
           }
         }
+
         var item = {
           id: record.id,
           creationTime: record.creationTime,
           lastModifiedTime: record.lastModifiedTime,
           authorIdentityId: record.authorIdentityId,
           authorName: (identity != null) ? identity.displayName : "Unknown",
-          body: record.body,
+          body: body,
           contentUri: contentUri,
           avatarUri: (identity != null) ? identity.avatarUri : "",
           creatorId: record.creatorId,
@@ -1063,13 +1129,26 @@ var engine = User.prototype = {
           var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
           var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
           var contentUri = ""
+          var body = jsonObj.body
           if (jsonObj.sourceType == "Facebook"){
             if (jsonObj.type == "Photo" || jsonObj.type == "Album"){
               contentUri = jsonObj.fbLink
             }
           }else if (jsonObj.sourceType == "WhatsApp"){
             if (jsonObj.hasOwnProperty('attachments') && jsonObj.attachments.length > 0){
-              //console.log(record)
+              for (var attachment of jsonObj.attachments){
+                if (attachment.contentType == 'image/jpeg'){
+                  contentUri = attachment.uri
+                }
+              }
+            }
+            if (jsonObj.type == "OutboundMessage"){
+              if (jsonObj.hasOwnProperty("structuredContent")){
+                body = jsonObj.structuredContent.subtitle
+              }
+            }
+          }else if (jsonObj.sourceType == "AppleMessagesForBusiness"){
+            if (jsonObj.attachments.length > 0){
               for (var attachment of jsonObj.attachments){
                 if (attachment.contentType == 'image/jpeg'){
                   contentUri = attachment.uri
@@ -1077,13 +1156,14 @@ var engine = User.prototype = {
               }
             }
           }
+
           var message = {
                   id: jsonObj.id,
                   creationTime: jsonObj.creationTime,
                   lastModifiedTime: jsonObj.lastModifiedTime,
                   authorName: (identity != null) ? identity.displayName : "Unknown",
                   authorIdentityId: jsonObj.authorIdentityId,
-                  body: jsonObj.body,
+                  body: body,
                   contentUri: contentUri,
                   avatarUri: (identity != null) ? identity.avatarUri : "",
                   creatorId: jsonObj.creatorId,
@@ -1106,7 +1186,7 @@ var engine = User.prototype = {
     },
     processEventNotication: function(eventPayload){
       // Workaround solution
-      //console.log("payload", eventPayload.body)
+      console.log("notification payload", eventPayload.body)
       var contentId = eventPayload.body.resource.id
       this._readNotifiedMessage(contentId)
       return

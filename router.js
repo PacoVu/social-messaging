@@ -250,6 +250,12 @@ var router = module.exports = {
       return this.forceLogin(req, res)
     users[index].initiateFBConversation(req, res)
   },
+  initiateWAConversation: function(req, res){
+    var index = getUserIndex(req.session.userId)
+    if (index < 0)
+      return this.forceLogin(req, res)
+    users[index].initiateWAConversation(req, res)
+  },
   postFeedbackToGlip: function(req, res){
     var index = getUserIndex(req.session.userId)
     if (index < 0)

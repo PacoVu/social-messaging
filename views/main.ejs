@@ -50,8 +50,41 @@
 
 </head>
 <body onload="init()">
-  <%- include('_feedback_form') %>
-  <%- include('_menu_header') %>
+  <nav id="menu_header" class="navbar navbar-default no-border">
+    <span class="left-middle-align">
+      <span class="rclogo"><a href="/"><img alt="Brand" src="img/ringcentral-labs.png" height="40"></a></span>&nbsp;&nbsp;
+      <span class="title">Social Messaging Demo</span>
+    </span>
+
+    <ul class="nav navbar-nav navbar-left" style="padding-top: 10px;">
+
+        <% if (channels.length > 0) { %>
+          <label class="label-input" for="my-channels">Channels</label>
+          <select id="my-channels" class="selectpicker filter-select" data-width="230" title="my channels">
+            <% var i=0 %>
+            <% for (var item of channels) { %>
+              <% if (i == 0) { %>
+                <option selected value="<%- item.id %>" class="fa <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
+              <% }else{ %>
+                <option value="<%- item.id %>" class="fa  <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
+              <% }; i++ %>
+            <% } %>
+          </select>
+        <% } else { %>
+          <label class="label-input" for="my-channels">No Channels</label>
+        <% } %>
+        <input type="button" class="form-control" style="display: inline;width: 170px;" value="Add to dashboard" onclick="addSelectedChannel()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Add selected channel to the dashboard"></input>
+        <span class="error" id="new-item-indicator"></span>
+
+    </ul>
+
+    <ul class="nav navbar-nav navbar-right middle-align">
+      <li><span>Hi <b><%- userName %></b></span></li>
+      <li><span>|</span></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
   <div id="hidden-div-reply" style="display: none">
     <form id="send_reply_form">
         <div>
@@ -72,14 +105,14 @@
       </div>
       <div class="block_space">
         <label class="" for="template-list">Template name</label>
-        <select id="template-list" class="selectpicker filter-select" title="Select a template" style="display: inline;width: 100px"></select>
+        <select id="template-list" class="selectpicker filter-select" onchange="showSelectedTemplate(this)" title="Select a template" style="display: inline;width: 100px"></select>
       </div>
       <div class="block_space">
         <label class="" for="language-list">Template language</label>
         <select id="language-list" class="selectpicker filter-select" title="Select a language" style="display: inline;width: 100px"></select>
       </div>
-      <div class="block_space">
-        <textarea id="new-wa-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
+      <div id="structured-content" class="block_space">
+        <!--textarea id="new-wa-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea-->
       </div>
     </form>
 
@@ -98,104 +131,28 @@
   <section id='content'>
     <div class="row col-lg-12">
       <%- include('_menu') %>
-      <div id="control-list-col" class="col-lg-3 conv-control-pane">
-        <div id="col2-header" class="form-inline read-message-input-block">
-          <div class="block_space">
-            <% if (channels.length > 1) { %>
-              <label class="label-input" for="my-channels">Channels</label>
-              <select id="my-channels" class="selectpicker filter-select" onchange="readMessageStore()" data-width="220" title="my numbers">
-                <% var i=0 %>
-                <% for (var item of channels) { %>
-                  <% if (i == 0) { %>
-                    <option selected value="<%- item.id %>" class="fa <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
-                  <% }else{ %>
-                    <option value="<%- item.id %>" class="fa  <%- item.icon %>">&nbsp;&nbsp;<%= item.name %></option>
-                  <% }; i++ %>
-                <% } %>
-              </select>
-            <% } else if (channels.length == 1) { %>
-              <label class="label-input" for="my-channels">Channels</label>
-              <input type="text" id="my-channels" size="15" class="form-control text-input" readonly style="display:none" value="<%- channels[0].id %>"></input><span><%= channels[0].name %></span>
-            <% } %>
-            <span class="error" id="new-item-indicator"></span>
-          </div>
-          <div id="contact-id-block" style="display: none">
-            <label class="label-input" for="contact-id">Business Id</label>
-            <span id="contact-id"><span>
-          </div>
-          <div class="block_space">
-            <label class="label-input" for="page-size">Max # messages</label>
-            <input type="number" id="page-size" size="4" class="form-control text-input" style="display:inline" value=30 step=5></input>
-          </div>
-          <div class="block_space">
-            <label class="label-input" for="direction">Time range</label>
-            <select class="selectpicker filter-select" data-width="180" id="period" onchange="readMessageStore()" style="display: inline" title="Time Period">
-              <option value="last-hour">Last hour</option>
-              <option value="last-24hour" selected>Last 24 hours</option>
-              <option value="last-seven-day">Last 7 days</option>
-              <option value="between">Between</option>
-            </select>
-          </div>
-          <div class="block_space" id="between-date" style="display: none">
-            <span>From </span><input type="text" id="fromdatepicker" size="10" class="form-control text-input"></input>
-            <span> To </span><input type="text" id="todatepicker" size="10" class="form-control text-input"></input>
-            <!--button id="readmessagestore" class="btn-rc inline" onclick="readMessageStore()">Read</button-->
-            <a href="#" onclick="readMessageStore();return false;">Read</a>
-          </div>
-<!--
-          <div class="block_space">
-            <label class="label-input" for="direction">Direction</label>
-            <select class="selectpicker filter-select" onchange="readMessageStore()" data-width="100" id="direction" style="display: inline" title="Direction">
-              <option value="Inbound">Inbound</option>
-              <option value="Outbound">Outbound</option>
-              <option value="Both" selected>Both</option>
-            </select>
-          </div>
--->
-        </div>
-        <hr style="margin: 2px !important;border: 2px solid white"></hr>
-
-        <div class="block_space">
-          <!--input type="text" class="form-control search-input" style="display: inline;" placeholder="Search recipient" value="" id="search-number" onfocus="clearSearch(this)" oninput="searchRecipientNumber(this)"></input-->
-          <input type="button" class="form-control" style="display: inline;width: 150px;" value="Start a conversation" onclick="openInitiateMessage()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Initiate a new conversation"></input>
-        </div>
-
-        <div id="recipient-list" class="scrollable recipient-list"></div>
-      </div>
-      <div id="message-col" class="col-lg-8" style="background-color: #f5f6fb;">
-        <div class="row col-xs-12" style="display:block;">
-          <div class="col-lg-8">
-            <div id="conversation-header" class="conversation-title" >
-              <span id="conversation-title" style="float: left;">All conversations</span>
-              <span style="float: right;">
-                <a id="prev-block" href="#" style="display: none"><< | </a>
-
-                <a id="next-block" href="#" style="display: none">>></a>
-              </span>
-            </div>
-            <div id="conversation"></div>
-            <div id="message-input" style="display: none">
-              <!--input type="text" id="send-text" style="height: 40px" size="auto" placeholder="Enter text here"></input-->
+      <div class="col-lg-11 container">
+        <div id="container" class="col-lg-12 channels-container">
+          <!--div class="col-lg-3">
+            <div id="message-input-1" style="display: block">
               <div data-emojiarea data-type="unicode" data-global-picker="false">
                 <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
-
-                <input type="text" id="send-text" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
-                <!--
-                <textarea type="text" id="send-text"  class="form-control auto_height" rows="1" onInput="auto_height(this)" style="display: inline;height: 40px" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></textarea>
-                -->
+                <input type="text" id="send-text-1" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
               </div>
             </div>
           </div>
-          <div class="col-lg-2">
-            <span class="block_space" id="downloads" style="display: none">
-              <a href="#" onclick="downloadMessageStore('CSV');return false;" style="display: inline">Download (CSV)</a><br>
-              <a href="#" onclick="downloadMessageStore('JSON');return false;" style="display: inline">Download (JSON)</a>
-            </span>
-          </div>
+          <div class="col-lg-3">
+            <div id="message-input-1" style="display: block">
+              <div data-emojiarea data-type="unicode" data-global-picker="false">
+                <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
+                <input type="text" id="send-text-1" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
+              </div>
+            </div>
+          </div-->
         </div>
       </div>
     </div>
   </section>
-  <%- include('_footer') %>
+
 </body>
 </html>

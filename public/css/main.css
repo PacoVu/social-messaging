@@ -307,10 +307,21 @@ button:focus {
   bottom: 10px;
 }
 
+.scrollable-list {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  height: 200px;
+  width: 100% !important;
+  margin-left: 0px;
+  /*
+  padding-right: 28px !important;
+  */
+}
+
 .scrollable {
   overflow-x: hidden;
   overflow-y: scroll;
-  height: 800px;
+  height: 600px;
 }
 
 .campain-input-col {
@@ -327,10 +338,6 @@ button:focus {
 
 #report-content > div:hover{
   background: #DBDBDB;
-}
-
-.campaign-detailed-list{
-
 }
 
 .content-list {
@@ -458,8 +465,8 @@ button:focus {
 }
 
 .recipient-list {
-  min-width: 450px!important;
-  max-width: 450px!important;
+  min-width: 450px inherit!important;
+  background-color: #476078 !important;
 }
 
 .recipient-item {
@@ -481,8 +488,8 @@ button:focus {
 }
 
 .recipient-item:hover {
-  background: #e5eafa;
-  color: #2559e5;
+  background: #478ED2;
+  color: #FFFFFF;
 }
 
 .message-count {
@@ -494,12 +501,13 @@ button:focus {
   text-align: center;
   padding: 5px;
   margin-top: -2px;
+  margin-left: 8px;
   margin-right: -8px;
   background-color: #ff8800;
   border-radius: 25px;
   border: 1px solid #ff8800;
   display: inline;
-  float: right;
+  /*float: right; */
 }
 
 .total-message-count {
@@ -537,24 +545,27 @@ button:focus {
   max-width: 500px;
 }
 
-#conversation {
+.conversation {
   overflow-x: hidden;
   overflow-y: scroll;
-  width: 100%;
-  min-width: 500px;
-  height: 400px;
+  /*min-width: 400px;*/
+  width: 100% !important;
+  margin-left: 0px;
+  height: 500px;
   border-top: 2px solid #dedede;
   border-bottom: 3px solid #dedede;
   background-color: #ffffff;
   padding: 10px;
 }
 
-#send-text {
+
+.send-text {
   width: 80%;
-  min-width: 464px;
+  min-width: 300px;
   margin-top:4px;
   margin-left: -15px;
 }
+
 .hasborder {
   border-top: 1px dotted purple;
 }

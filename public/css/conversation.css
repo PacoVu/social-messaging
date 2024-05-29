@@ -307,6 +307,7 @@
 .avatar {
     width: 25px !important;
     height: 25px !important;
+    margin-right: 3px;
 }
 
 @media (max-width: 767px) {
@@ -397,4 +398,63 @@ ul {
 
 .auto_height { /* CSS */
   width: 100%;
+}
+
+.container {
+  margin-left: 0px !important;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+/* off set col-lg-12 */
+.channels-container {
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  width: 107% !important;
+  border: 1px solid #f4f5fb;
+}
+/* off set col-lg-3 */
+.col-lg-3 {
+  padding-left: 1px !important;
+  padding-right: 1px !important;
+}
+
+.channel-block {
+  /*margin-left: -30px !important;*/
+  /*padding-left: -30px !important;*/
+  border-right: 1px solid #748395;
+  border-bottom: 1px solid #748395;
+  background-color: #F2EDE9;
+}
+
+.channel-name {
+  margin-left: 0px !important;
+  /*padding-left: -15px !important;*/
+  min-height: 30px;
+  font-size: 1.2em;
+  color: #FFFFFF; /*#185D99;#f5f0f0;*/
+  background-color: #FF8633; /*#33DDFF;*/
+}
+.chat-header {
+  /*margin-left: -15px !important;*/
+  height: 25px;
+  margin-top: 5px !important;
+  margin-bottom: 5px !important;
+  font-weight: bold;
+  color: #FFFFFF;
+  background-color: #0671F2; /*#33DDFF;*/
+}
+
+.new-convo-button {
+  background-color: #1877D2;
+  border: 0;
+  float: right;
+}
+
+.close-tab {
+  width: 20px;
+  float: right;
+}
+
+.close-tab:hover {
+  cursor: grab;
 }

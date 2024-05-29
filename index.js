@@ -173,6 +173,14 @@ app.post('/initiate-fb-conversation', function (req, res) {
   }
 })
 
+app.post('/initiate-wa-conversation', function (req, res) {
+  console.log('initiateWAConversation')
+  if (req.session.extensionId != 0)
+    router.initiateWAConversation(req, res)
+  else{
+    res.render('index')
+  }
+})
 
 app.get('/download-standard-message-report', function (req, res) {
   if (req.session.extensionId != 0)

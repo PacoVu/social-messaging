@@ -65,7 +65,43 @@ function addToRecipient(elm){
   $("#to-new-number").val($(elm).val())
 }
 
+function showSelectedTemplate(e){
+  let template = {
+            "type": "body",
+            "parameters": [
+              {
+                "type": "text",
+                "text": "Paco"
+              },
+              {
+                "type": "text",
+                "text": "Plumbing maintenance"
+              }
+            ]
+          }
+
+    var mainContainer = $("#structured-content")
+    var i1 = $('<label>', {text : "Name: "})
+      //.css('style', "display: inline; width: 100px")
+      .appendTo(mainContainer);
+
+    $('<input id="input-1">')
+        //.css('style', "display: inline; width: 120px;")
+        .addClass('form-control')
+        .appendTo(i1);
+
+    var i2 = $('<label>', {text : "Message: "})
+      //.css('style', "display: inline; width: 100px")
+      .appendTo(mainContainer);
+
+    $('<input id="input-2">')
+      //.css('style', "display: inline; width: 150px;")
+      .addClass('form-control')
+      .appendTo(i2);
+}
+
 function openInitiateWAMessage(channelId, channelName, contactsList){
+  $("#structured-content").empty()
   var testTemplatesName = [ "account_usage_info", "none-existing-template" ]
   var testTemplateLang = [ "en", "fr", "es" ]
   $("#contacts-block").show()
@@ -117,25 +153,43 @@ function openInitiateWAMessage(channelId, channelName, contactsList){
         label: 'Send',
         cssClass: 'btn btn-primary',
         action: function(dialog) {
+          var components = [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: $("#input-1").val()
+                },
+                {
+                  type: "text",
+                  text: $("#input-2").val()
+                }
+              ]
+            }
+          ]
           var params = {
+            channelId: channelId,
             to: $("#to-new-number").val(),
             templateName: $("#template-list").val(),
             templateLanguage: $("#language-list").val(),
-            message: $("#new-wa-text-message").val()
+            components: JSON.stringify(components)
           }
-
           if (params.to == ""){
             $("#to-new-number").focus()
             return _alert("Please enter a recipient phone number!")
           }
-          if (params.message == ""){
-            $("#new-wa-text-message").focus()
-            return _alert("Please enter text message!")
+          if (params.templateName == ""){
+            $("#template-list").focus()
+            return _alert("Please select a template!")
           }
+          if (params.templateLanguage == ""){
+            $("#language-list").focus()
+            return _alert("Please select a language for this template!")
+          }
+
           var url = "initiate-wa-conversation"
-          console.log(params)
-          alert("Initiating WhatsApp message requires a template which is not yet supported.")
-          return
+          $("#structured-content").empty()
           var posting = $.post( url, params );
           posting.done(function( res ) {
             if (res.status == "ok"){
@@ -159,7 +213,7 @@ function openInitiateWAMessage(channelId, channelName, contactsList){
   return false;
 }
 
-function openInitiateFBMessage(sourceId, channelName){
+function openInitiateFBMessage(channelId, channelName){
   var message = $('#send_new_fb_form');
 
   $('#send_new_fb_form').on('shown.bs.modal', function () {
@@ -182,7 +236,7 @@ function openInitiateFBMessage(sourceId, channelName){
         cssClass: 'btn btn-primary',
         action: function(dialog) {
           var params = {
-            sourceId: sourceId,
+            channelId: channelId,
             message: $("#new-fb-text-message").val()
           }
 
@@ -248,6 +302,7 @@ function openChannelRegistration(){
             name: $("#channel-name").val(),
             id: $("#channel-id").val(),
             contactId: $("#channel-number").val(),
+            avatarUri: $("#channel-avatar").val()
           }
 
           if (params.name == ""){
