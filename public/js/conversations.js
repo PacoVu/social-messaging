@@ -570,8 +570,8 @@ function createConversationsList(channel, totalMsg){
         name += ` (${creationTime(convoGroup.conversations[0].creationTime)})`
     }else{
         var lastMSg = convoGroup.conversations.length - 1
-        name += ` (${creationTime(convoGroup.conversations[lastMSg].creationTime)})`
-        //name += ` - ${creationTime(convoGroup.conversations[0].creationTime)})`
+        //name += ` (${creationTime(convoGroup.conversations[lastMSg].creationTime)})`
+        name += ` (${creationTime(convoGroup.conversations[0].creationTime)})`
     }
 
     html += `<div id='${convoGroup.conversationId}' class='recipient-item' onclick='showConversation("${channel.id}","${convoGroup.conversationId}", "${name}")'>`
