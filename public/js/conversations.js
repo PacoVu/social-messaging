@@ -1,3 +1,4 @@
+//import { EmojiArea } from './assets/js/jquery.emojiarea.js';
 var recipientPhoneNumbers = []
 var timeOffset = 0
 var dateStr = ""
@@ -49,7 +50,7 @@ function init(){
   //console.log(window.displayedChannels)
   //if (displayedChannels.length == 0)
   displayedChannels = JSON.parse(window.displayedChannels)
-  //console.log(displayedChannels)
+
   if (displayedChannels.length > 0){
     for (var channel of displayedChannels){
       createChannelContainer(channel)
@@ -58,6 +59,7 @@ function init(){
   }else{
     console.log("No displayed channel")
   }
+
 }
 
 function addSelectedChannel(){
@@ -115,17 +117,14 @@ function createChannelContainer(channel){
   var mainContainer = $("#container")
   var main = $(`<div id='main-${channel.id}'>`)
     .addClass('col-lg-3 channel-block')
-    //.css('background', "url('http://somesite.com/path/to/image.jpg')")
     .appendTo(mainContainer);
-
-  // add avatar
 
   // add header
   var header = $(`<div>`) // , { text: channel.name }
     .addClass(`channel-name`)
     .appendTo(main);
 
-    // `<span class="avatar"><img class="avatar" src="${avatarUri}"</img></span>
+    var phoneNumber = ""
     var avatar = $(`<span>`)
       .addClass(`avatar`)
       .appendTo(header);
@@ -134,6 +133,9 @@ function createChannelContainer(channel){
       $(`<img>`, { src: channel.avatarUri })
         .addClass(`avatar`)
         .appendTo(avatar);
+      if (channel.sourceType == "WhatsApp"){
+        phoneNumber = " - " + formatPhoneNumber(channel.contactId)
+      }
     }else{ // use media icon
       if (channel.sourceType == "FaceBook"){
         $(`<img>`, { src: './img/facebook.png' })
@@ -147,6 +149,7 @@ function createChannelContainer(channel){
         $(`<img>`, { src: './img/whatsapp.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
+          phoneNumber = " - " + formatPhoneNumber(channel.contactId)
       }else if (channel.sourceType == "Apple"){
         $(`<img>`, { src: './img/apple.png' })
           .addClass(`avatar`)
@@ -158,7 +161,7 @@ function createChannelContainer(channel){
       }
     }
 
-    var name = $(`<span>`, { text: channel.name })
+    var name = $(`<span>`, { text: `${channel.name}${phoneNumber}` })
         .appendTo(header);
 
     var closeBtn = $(`<img>`, { src: './img/close.png' })
@@ -192,11 +195,30 @@ function createChannelContainer(channel){
       .css('style', "display: none")
       .appendTo(main);
 
+    /*
+    var inputArea =  $(`<div id='input-area-${channel.id}' data-emojiarea data-type="unicode" data-global-picker="false">`)
+    var icon = $(`<span>`)
+      .addClass('emoji-button')
+      .css('style', "height: 40px")
+      .appendTo(inputArea);
+
+    var img = $(`<img>`, { src: "/img/emoji.png" })
+      .addClass('medium-icon')
+      .appendTo(icon);
+
+    var msgField = $(`<input type="text" id='send-text-${channel.id}'>`)
+      .addClass('form-control send-text')
+      .css('style', "display: inline; height: 40px")
+      .appendTo(inputArea);
+
+    inputArea.appendTo(inputField)
+    */
     var html = '<div data-emojiarea data-type="unicode" data-global-picker="false">'
     html += '<span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>'
     html += `<input type="text" id="send-text-${channel.id}" class="form-control send-text" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>`
     html += '</div>'
     inputField.html(html)
+
 
     $(`#send-text-${channel.id}`).keyup(function(e) {
       if(e.keyCode == 13) {
@@ -716,7 +738,7 @@ function showConversation(channelId, selectedConvo, name){
   }
 }
 
-function createConversationItem_timePeriod(item, conversation){
+function createConversationItem_period(item, conversation){
   //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)
@@ -750,9 +772,11 @@ function createConversationItem_timePeriod(item, conversation){
       line += `<div class="chat-text error">${msg}</div>`
       line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
     }
+    /*
     if (item.avatarUri != ""){
       line += `<div class="chat-avatar"><img class="avatar" src="${item.avatarUri}"</img></div>`
     }
+    */
     //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
   }else{
     line += '<li class="chat-left">'
