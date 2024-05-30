@@ -214,12 +214,16 @@ function createChannelContainer(channel){
 
     inputArea.appendTo(inputField)
     */
-    var html = '<div data-emojiarea data-type="unicode" data-global-picker="false">'
-    html += '<span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>'
-    html += `<input type="text" id="send-text-${channel.id}" class="form-control send-text" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>`
+    //var html = '<div data-emojiarea data-type="unicode" data-global-picker="false">'
+    //html += '<span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>'
+    html = `<div class=" send-text"><input type="text" id="send-text-${channel.id}" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Reply to this conversation"></input>`
     html += '</div>'
     inputField.html(html)
 
+
+    $(document).ready(function() {
+      $(`#send-text-${channel.id}`).emojioneArea()
+    });
 
     $(`#send-text-${channel.id}`).keyup(function(e) {
       if(e.keyCode == 13) {

@@ -32,11 +32,16 @@
   	<script src="http://code.jquery.com/jquery-1.9.0.js"></script>
   	<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     -->
+    <link rel="stylesheet" type="text/css" href="../dist/emojionearea.min.css" media="screen">
+    <script type="text/javascript" src="../dist/emojionearea.js"></script>
+
     <!-- test emoji -->
+    <!--
     <link rel="stylesheet" type="text/css" href="./assets/css/reset.css">
     <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
+    -->
     <!--link rel="stylesheet" type="text/css" href="./assets/css/emojiarea.css"-->
-    <script src="./assets/js/jquery.emojiarea.js"></script>
+    <!--<script src="./assets/js/jquery.emojiarea.js"></script>-->
     <!--script src="./assets/js/main.js"></script-->
     <!-- test emoji end -->
     <script>
@@ -47,6 +52,7 @@
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();
       });
+
     </script>
 
 </head>
@@ -134,26 +140,6 @@
       <%- include('_menu') %>
       <div class="col-lg-11 container">
         <div id="container" class="col-lg-12 channels-container">
-          <!--
-          <div class="col-lg-3 channel-block">
-            <div id="message-input-1" style="display: block">
-              <div data-emojiarea data-type="unicode" data-global-picker="false">
-                <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
-                <input type="text" id="send-text-1" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 channel-block">
-            <div id="message-input-2" style="display: block">
-              <div data-emojiarea data-type="unicode" data-global-picker="false">
-                <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
-                <input type="text" id="send-text-2" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
-              </div>
-            </div>
-          </div>
-        -->
-
-
         </div>
       </div>
     </div>
