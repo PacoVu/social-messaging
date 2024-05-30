@@ -5,7 +5,7 @@ var dateStr = ""
 var lastVisited = new Date().getTime() - 604800000
 //var selectedRecipient = undefined
 var newItems = 0
-var pageTokens = undefined
+//var pageTokens = undefined
 //var currentSelectedItem = "all"
 var currentSelectedchannel = ""
 var pollingTimer = null
@@ -54,7 +54,7 @@ function init(){
   if (displayedChannels.length > 0){
     for (var channel of displayedChannels){
       createChannelContainer(channel)
-      readMessageStore(channel, "")
+      readMessageStore(channel.id, "")
     }
   }else{
     console.log("No displayed channel")
@@ -75,11 +75,12 @@ function addSelectedChannel(){
     to: "",
     message: ""
   }
+  channel['pageToken'] = ""
   channel['currentSelectedItem'] = `all-${selectedChannel}`
   displayedChannels.push(channel)
   saveUserSettings()
   createChannelContainer(channel)
-  readMessageStore(channel, "")
+  readMessageStore(channel.id, "")
 }
 
 function saveUserSettings(){
@@ -169,6 +170,27 @@ function createChannelContainer(channel){
       .addClass(`close-tab`)
       .attr('onclick', `closeTab('${channel.id}')`)
       .appendTo(avatar);
+
+  var navigationBar = $(`<div id='navi-${channel.id}'>`) // , { text: channel.name }
+      .addClass(`channel-navi`)
+      .appendTo(main);
+
+  $(`<a>`,{
+        id: `prev-block-${channel.id}`,
+        text: '<< | ',
+        title: 'prev page',
+        href: '#'
+      }).addClass("navi-item")
+      .appendTo(navigationBar);
+
+  $(`<a>`,{
+        id: `next-block-${channel.id}`,
+        text: ' >>',
+        title: 'next page',
+        href: '#'
+      })
+      .addClass("navi-item")
+      .appendTo(navigationBar);
 
   var recipientList = $(`<div id='recipient-list-${channel.id}'>`)
     .addClass(`scrollable-list`)
@@ -462,9 +484,8 @@ function pollNewMessages(){
             channel.messageList.unshift(newConvo)
           }
           if (res.newMessages.length)
-            processResult(channel)
+            processResult(channel, res.newMessages.length, msg.threadId)
         }else{
-          if (currentSelectedchannel != msg.channelId){
             var channel = $(`#my-channels option[value="${msg.channelId}"]`)
             if (channel){
               var text = channel.text()
@@ -488,7 +509,6 @@ function pollNewMessages(){
               $("#new-item-indicator").html(`+${newItems}`)
             else
               $("#new-item-indicator").html('')
-            }
           }
         }
 
@@ -504,8 +524,10 @@ function pollNewMessages(){
   });
 }
 
-function readMessageStore(channel, token){
-
+function readMessageStore(channelId, token){
+  var channel = displayedChannels.find(o => o.id == channelId)
+  if (!channel)
+    return
   var configs = {
     dateFrom: "",
     dateTo: "",
@@ -576,8 +598,8 @@ function readMessageStore(channel, token){
       $("#search-number").focus()
       channel.messageList = res.result
       //console.log(messageList)
-      pageTokens = res.pageTokens
-      processResult(channel)
+      channel.pageTokens = res.pageTokens
+      processResult(channel, 0, 0)
       // closed until notification payload issues are fixed
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
@@ -602,7 +624,7 @@ function readMessageStore(channel, token){
 }
 
 // show inbound and outbound message count
-function processResult(channel){
+function processResult(channel, newMsgCount, threadId){
   var totalInbound = 0
   var totalOutbound = 0
   recipientPhoneNumbers = []
@@ -618,33 +640,39 @@ function processResult(channel){
   //$("#left_pane").show()
   //$("#downloads").show()
 
-  createConversationsList(channel, totalMsg)
-  //console.log("pageTokens", pageTokens)
-  if (pageTokens != undefined){
-    if (pageTokens.nextPageToken != ""){
-      var link = $("#next-block");
-      link.attr("href",`javascript:readMessageStore("${pageTokens.nextPageToken}")`);
+  createConversationsList(channel, totalMsg, newMsgCount, threadId)
+  console.log("pageTokens", channel.pageTokens)
+  if (channel.pageTokens != undefined){
+    if (channel.pageTokens.nextPageToken != ""){
+      var link = $(`#next-block-${channel.id}`);
+      link.attr("href",`javascript:readMessageStore('${channel.id}', "${channel.pageTokens.nextPageToken}")`);
       link.css('display', 'inline');
     }else{
-      var link = $("#next-block");
+      var link = $(`#next-block-${channel.id}`);
       link.attr("href", "#");
       link.css('display', 'none');
     }
-    if (pageTokens.previousPageToken != ""){
-      var link = $("#prev-block");
-      link.attr("href",`javascript:readMessageStore("${pageTokens.previousPageToken}")`);
+    if (channel.pageTokens.previousPageToken != ""){
+      var link = $(`#prev-block-${channel.id}`);
+      link.attr("href",`javascript:readMessageStore('${channel.id}', "${channel.pageTokens.previousPageToken}")`);
       link.css('display', 'inline');
     }else{
-      var link = $("#prev-block");
+      var link = $(`#prev-block-${channel.id}`);
       link.attr("href", "#");
       link.css('display', 'none');
     }
+    $(`#navi-${channel.id}`).show()
   }else {
-    $("#next-page").hide()
+    $(`#navi-${channel.id}`).hide()
   }
 }
-function createConversationsList(channel, totalMsg){
-  var html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
+function createConversationsList(channel, totalMsg, newMsgCount, threadId){
+  var html = ""
+  if (newMsgCount == 0)
+    html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
+  else
+    html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="new-message-count">${totalMsg}</div></div>`
+
   for (var convoGroup of channel.messageList){
     // possible statuses: New, Assigned, Replied, UserReply, UserInitiated, Ignored
     var identity = convoGroup.conversations.find( o => o.status == "UserReply" || o.status == "UserInitiated" || o.status == "PendingApproval")
@@ -671,7 +699,7 @@ function createConversationsList(channel, totalMsg){
         name += ` (${creationTime(convoGroup.conversations[0].creationTime)})`
     }
 
-    html += `<div id='${convoGroup.conversationId}' class='recipient-item' onclick='showConversation("${channel.id}","${convoGroup.conversationId}", "${name}")'>`
+    html += `<div id='${convoGroup.conversationId}' class='recipient-item' onclick='showConversation("${channel.id}","${convoGroup.conversationId}", "${name}", "${threadId}")'>`
     /*
     if (avatarUri){
       console.log(avatarUri)
@@ -686,15 +714,22 @@ function createConversationsList(channel, totalMsg){
       else
         outboundCount++
     }
-    html += `<span class="recipient-info">${name}</span><span class="message-count">${inboundCount}/${outboundCount}</span>`
+    /*
+    if (threadId == 0)
+      html += `<span class="recipient-info">${name}</span><span class="message-count">${inboundCount}/${outboundCount}</span>`
+    */
+    if (convoGroup.conversationId == threadId)
+      html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="new-message-count">${inboundCount}/${outboundCount}</span>`
+    else
+      html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="message-count">${inboundCount}/${outboundCount}</span>`
     html += "</div>"
   }
 
   $(`#recipient-list-${channel.id}`).html(html)
-  showConversation(channel.id, channel.currentSelectedItem, name)
+  showConversation(channel.id, channel.currentSelectedItem, name, threadId)
 }
 
-function showConversation(channelId, selectedConvo, name){
+function showConversation(channelId, selectedConvo, name, threadId){
   //console.log("recipient", selectedConvo)
   //console.log("channel id", channelId)
   var channel = displayedChannels.find(o => o.id === channelId)
@@ -702,6 +737,12 @@ function showConversation(channelId, selectedConvo, name){
   $(`#${channel.currentSelectedItem}`).removeClass("active");
 
   $(`#${selectedConvo}`).addClass("active");
+  if (selectedConvo == threadId){
+    setTimeout(function(){
+      $(`#indicator-${selectedConvo}`).removeClass("new-message-count");
+      $(`#indicator-${selectedConvo}`).addClass("message-count");
+    }, 3000)
+  }
   channel.currentSelectedItem = selectedConvo
 
   if (channel.messageList.length){

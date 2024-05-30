@@ -251,10 +251,10 @@
     border-radius: 4px;
     /*color: #2d3444;*/
     color: #4a66ab;
-    /*font-family: sans-serif, Helvetica, Arial;*/
+    font-family: "Times New Roman", Helvetica, Arial;
     background: #f3f2f3; /*D1DFFA;#ffff00;*/
     /*font-weight: 300;*/
-    line-height: 180%;
+    line-height: 120%;
     position: relative;
 }
 
@@ -434,6 +434,21 @@ ul {
   color: #FFFFFF; /*#185D99;#f5f0f0;*/
   background-color: #FF8633; /*#33DDFF;*/
 }
+
+.channel-navi {
+  margin-left: 0px !important;
+  min-height: 15px;
+  font-size: 0.9em;
+  color: #FFFFFF;
+  background-color: #B9CFF9;
+}
+
+.navi-item {
+  display: none;
+  font-size: 0.9em;
+  float: right;
+}
+
 .chat-header {
   /*margin-left: -15px !important;*/
   height: 25px;

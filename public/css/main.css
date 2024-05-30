@@ -310,7 +310,7 @@ button:focus {
 .scrollable-list {
   overflow-x: hidden;
   overflow-y: scroll;
-  height: 200px;
+  height: 150px;
   width: 100% !important;
   margin-left: 0px;
   /*
@@ -321,7 +321,7 @@ button:focus {
 .scrollable {
   overflow-x: hidden;
   overflow-y: scroll;
-  height: 600px;
+  height: 700px;
 }
 
 .campain-input-col {
@@ -465,17 +465,18 @@ button:focus {
 }
 
 .recipient-list {
-  min-width: 450px inherit!important;
+  min-width: 300px inherit!important;
   background-color: #476078 !important;
 }
 
 .recipient-item {
   position: relative;
   color: inherit;
+  font-size: 0.95em;
   background-color: #f5f6fb;
   margin: auto;
   margin-left: 0px;
-  padding: 10px;
+  padding: 4px;
   padding-right: 20px;
   min-width: 450px!important;
   max-width: 450px!important;
@@ -503,11 +504,28 @@ button:focus {
   margin-top: -2px;
   margin-left: 8px;
   margin-right: -8px;
+  background-color: #929191;
+  border-radius: 25px;
+  display: inline;
+  /*float: right; */
+}
+
+.new-message-count {
+  color: #ffffff;
+  font-size: 0.8em;
+  font-weight: bold;
+  min-width: 30px;
+  min-height: 30px;
+  text-align: center;
+  padding: 5px;
+  margin-top: -2px;
+  margin-left: 8px;
+  margin-right: -8px;
   background-color: #ff8800;
   border-radius: 25px;
   border: 1px solid #ff8800;
   display: inline;
-  /*float: right; */
+  /*float: right;*/
 }
 
 .total-message-count {
