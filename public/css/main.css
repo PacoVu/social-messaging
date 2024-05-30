@@ -560,11 +560,32 @@ button:focus {
 
 
 .send-text {
-  width: 99%;
-  /*min-width: 300px;*/
+  width: 85%;
   margin-top:2px;
   margin-left: 2px;
   margin-right: 2px !important;
+}
+
+.send-btn {
+  width: 8%;
+  max-width: 25px !important;
+  margin-top: -30px;
+  margin-right: 1px;
+  display: inline !important;
+  float: right;
+}
+
+.send-btn:hover {
+  cursor: grab;
+}
+.emojionearea-editor {
+    min-height: 30px !important;
+    display: inline;
+}
+
+.emojionearea-container {
+    min-height: 30px !important;
+    width: 94% !important;
 }
 
 .hasborder {

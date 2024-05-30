@@ -194,6 +194,7 @@ function createChannelContainer(channel){
 
     var inputField = $(`<div id='message-input-${channel.id}'>`)
       .css('style', "display: none")
+      .addClass(`message-input`)
       .appendTo(main);
 
     /*
@@ -216,15 +217,36 @@ function createChannelContainer(channel){
     */
     //var html = '<div data-emojiarea data-type="unicode" data-global-picker="false">'
     //html += '<span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>'
-    html = `<div class=" send-text"><input type="text" id="send-text-${channel.id}" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Reply to this conversation"></input>`
-    html += '</div>'
-    inputField.html(html)
+    //html = `<div class="send-text"><textarea id="send-text-${channel.id}" class="form-control text-input" rows="2" cols="50" placeholder="Reply to this conversation"></textarea>`
+    var html = `<textarea id="send-text-${channel.id}" class="emojionearea-editor"/>`
+    html += `<div id="container-${channel.id}" class="emojionearea-container"></div>`
+    html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
 
 
-    $(document).ready(function() {
-      $(`#send-text-${channel.id}`).emojioneArea()
-    });
 
+      //html += '<div id="container1" class="emojionearea-container"></div>'
+      //html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
+      //html += `<img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"></img>`
+      inputField.html(html)
+      //$('#emojionearea1').height($('#container1').outerHeight());
+
+      $(`#send-text-${channel.id}`).emojioneArea({
+              container: $(`#container-${channel.id}`), // by jQuery object
+              searchPosition: "bottom"
+          });
+    //$(document).ready(function() {
+      //$(`#send-text-${channel.id}`).emojioneArea({
+      //  hidePickerOnBlur: true
+      //});
+    //});
+
+    /*
+    $(`#send-text-${channel.id}`).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        */
+/*
     $(`#send-text-${channel.id}`).keyup(function(e) {
       if(e.keyCode == 13) {
         $(this).trigger("enterKey");
@@ -234,7 +256,7 @@ function createChannelContainer(channel){
       sendTextMessage(channel.id, $(`#send-text-${channel.id}`).val())
       $(`#send-text-${channel.id}`).val("")
     });
-
+*/
   /*
   <div class="col-lg-3">
     <div class="block_space">
@@ -251,6 +273,7 @@ function createChannelContainer(channel){
   </div>
   */
 }
+
 
 function closeTab(channelId){
   var channel = $(`#main-${channelId}`)
@@ -336,8 +359,12 @@ function openInitiateMessage(channelType, channelId, channelName){
 }
 
 function sendTextMessage(channelId, message){
+  if (message == ''){
+    message = $(`#send-text-${channelId}`).val()
+    $(`#send-text-${channelId}`).data("emojioneArea").setText('');
+  }
   if (message == ""){
-    $(`#send-text-${channel.id}`).focus()
+    $(`#send-text-${channelId}`).focus()
     return _alert("Please enter text message!")
   }
   var channel = displayedChannels.find(o => o.id === channelId)
@@ -698,7 +725,7 @@ function showConversation(channelId, selectedConvo, name){
           if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
             channel.params.to = msg.id
           }
-          html += createConversationItem(msg, false)
+          html += createConversationItem(channel.id, msg, false)
         }
       }
     }else { // display selected conversation
@@ -722,7 +749,7 @@ function showConversation(channelId, selectedConvo, name){
         if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
           channel.params.to = msg.id
         }
-        html += createConversationItem(msg, true)
+        html += createConversationItem(channel.id, msg, true)
       }
       if (channel.params.to == ""){
         // disable the input for now. Should be enable for initiating a new message!
@@ -743,7 +770,7 @@ function showConversation(channelId, selectedConvo, name){
   }
 }
 
-function createConversationItem_period(item, conversation){
+function createConversationItem_period(channelId, item, conversation){
   //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)
@@ -798,7 +825,7 @@ function createConversationItem_period(item, conversation){
   return line
 }
 
-function createConversationItem(item, conversation){
+function createConversationItem(channelId, item, conversation){
   //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)
@@ -843,7 +870,7 @@ function createConversationItem(item, conversation){
     }else{
       line += `<div class="chat-text">${msg}</div>`
       if (conversation)
-        line += `<a href="#" class="chat-avatar" onclick="getAnswer('${msg}')"><img src="/img/bot.png" style="width: 30px; height: 35px" /></a>`
+        line += `<a href="#" class="chat-avatar" onclick="getAnswer('${channelId}', '${msg}')"><img src="/img/bot.png" style="width: 30px; height: 35px" /></a>`
     }
   }
 
@@ -851,7 +878,7 @@ function createConversationItem(item, conversation){
   return line
 }
 
-function getAnswer(msg){
+function getAnswer(channelId, msg){
   //$("#send-text").val(msg)
   //return
     var bodyParams = {
@@ -861,7 +888,7 @@ function getAnswer(msg){
     var posting = $.post( url, bodyParams );
     posting.done(function( res ) {
       if (res.status == "ok") {
-        sendTextMessage(res.message)
+        sendTextMessage(channelId, res.message)
         //$("#send-text").val(res.message)
         //$("#send-text").focus()
       }else if (res.status == "error"){
