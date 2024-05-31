@@ -197,7 +197,7 @@ var engine = User.prototype = {
     },
     registerNewChannel: async function(body, res){
       var icon = ""
-      switch (body.sourceType) {
+      switch (body.channelType) {
         case "WhatsApp":
           icon = "fa-whatsapp"
           break;
@@ -220,7 +220,7 @@ var engine = User.prototype = {
         name: body.name,
         id: body.id,
         contactId: (body.contactId) ? body.contactId : "",
-        sourceType: body.sourceType,
+        channelType: body.channelType,
         icon: icon,
         avatarUri: body.avatarUri
       }
@@ -466,7 +466,7 @@ var engine = User.prototype = {
               //templateLanguage: "en",
               autoSubmitted: true,
               public: false,
-              //sourceType: 'WhatsApp',
+              //channelType: 'WhatsApp',
               sourceId: body.id
             }
           var resp = await p.post(endpoint, bodyParams)
@@ -658,11 +658,11 @@ var engine = User.prototype = {
          ReviewResponse, RichLinkMessage, SelectMessage, Status, TemplateMessage,
          TimePickerMessage, Tweet, Video, VideoCallRequestMessage
         */
-        if (record.sourceType == "Facebook"){
+        if (record.channelType == "Facebook"){
           if (record.type == "Photo" || record.type == "Album"){
             contentUri = record.fbLink
           }
-        }else if (record.sourceType == "WhatsApp"){
+        }else if (record.channelType == "WhatsApp"){
           if (record.attachments.length > 0){
             //console.log(record)
             for (var attachment of record.attachments){
@@ -676,7 +676,7 @@ var engine = User.prototype = {
               body = record.structuredContent.subtitle
             }
           }
-        }else if (record.sourceType == "AppleMessagesForBusiness"){
+        }else if (record.channelType == "AppleMessagesForBusiness"){
           if (record.attachments.length > 0){
             //console.log(record)
             for (var attachment of record.attachments){
@@ -1167,11 +1167,11 @@ var engine = User.prototype = {
           var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)
           var contentUri = ""
           var body = jsonObj.body
-          if (jsonObj.sourceType == "Facebook"){
+          if (jsonObj.channelType == "Facebook"){
             if (jsonObj.type == "Photo" || jsonObj.type == "Album"){
               contentUri = jsonObj.fbLink
             }
-          }else if (jsonObj.sourceType == "WhatsApp"){
+          }else if (jsonObj.channelType == "WhatsApp"){
             if (jsonObj.hasOwnProperty('attachments') && jsonObj.attachments.length > 0){
               for (var attachment of jsonObj.attachments){
                 if (attachment.contentType == 'image/jpeg'){
@@ -1184,7 +1184,7 @@ var engine = User.prototype = {
                 body = jsonObj.structuredContent.subtitle
               }
             }
-          }else if (jsonObj.sourceType == "AppleMessagesForBusiness"){
+          }else if (jsonObj.channelType == "AppleMessagesForBusiness"){
             if (jsonObj.attachments.length > 0){
               for (var attachment of jsonObj.attachments){
                 if (attachment.contentType == 'image/jpeg'){
@@ -1252,11 +1252,11 @@ var engine = User.prototype = {
        ReviewResponse, RichLinkMessage, SelectMessage, Status, TemplateMessage,
        TimePickerMessage, Tweet, Video, VideoCallRequestMessage
       */
-      if (body.sourceType == "Facebook"){
+      if (body.channelType == "Facebook"){
         if (body.type == "Photo" || body.type == "Album"){
           contentUri = body.fbLink
         }
-      }else if (body.sourceType == "WhatsApp"){
+      }else if (body.channelType == "WhatsApp"){
         if (body.hasAttachment) {
           if (body.hasOwnProperty('attachments') && body.attachments.length > 0){
             for (var attachment of body.attachments){

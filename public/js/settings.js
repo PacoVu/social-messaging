@@ -24,10 +24,11 @@ function showChannelInfo(){
     console.log(channel)
     var html = `<div><label class="label-input">Name:</label>${channel.name}</div>`
     html += `<div><label class="label-input">Id:</label>${channel.id}</div>`
-    html += `<div><label class="label-input">Type:</label>${channel.sourceType}</div>`
-    if (channel.sourceType == "WhatsApp")
+    html += `<div><label class="label-input">Type:</label>${channel.channelType}</div>`
+    html += `<div><label class="label-input">Avatar URL:</label>${channel.avatarUri}</div>`
+    if (channel.channelType == "WhatsApp")
       html += `<div><label class="label-input">Phone number:</label>${channel.contactId}</div>`
-    else if (channel.sourceType == "Apple")
+    else if (channel.channelType == "Apple")
       html += `<div><label class="label-input">Apple Id:</label>${channel.contactId}</div>`
     $("#channel-info").html(html)
     $("#display-channel").show()

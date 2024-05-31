@@ -136,28 +136,28 @@ function createChannelContainer(channel){
       $(`<img>`, { src: channel.avatarUri })
         .addClass(`avatar`)
         .appendTo(avatar);
-      if (channel.sourceType == "WhatsApp"){
+      if (channel.channelType == "WhatsApp"){
         phoneNumber = " - " + formatPhoneNumber(channel.contactId)
       }
     }else{ // use media icon
-      if (channel.sourceType == "FaceBook"){
+      if (channel.channelType == "FaceBook"){
         $(`<img>`, { src: './img/facebook.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
-      }else if (channel.sourceType == "LinkedIn"){
+      }else if (channel.channelType == "LinkedIn"){
         $(`<img>`, { src: './img/linkedin.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
-      }else if (channel.sourceType == "WhatsApp"){
+      }else if (channel.channelType == "WhatsApp"){
         $(`<img>`, { src: './img/whatsapp.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
           phoneNumber = " - " + formatPhoneNumber(channel.contactId)
-      }else if (channel.sourceType == "Apple"){
+      }else if (channel.channelType == "Apple"){
         $(`<img>`, { src: './img/apple.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
-      }else if (channel.sourceType == "Twitter"){
+      }else if (channel.channelType == "Twitter"){
         $(`<img>`, { src: './img/twitter.png' })
           .addClass(`avatar`)
           .appendTo(avatar);
@@ -204,7 +204,7 @@ function createChannelContainer(channel){
 
   var newConvo = $(`<button>`, {text: "New Conversation"})
     .addClass("new-convo-button")
-    .attr('onclick', `openInitiateMessage('${channel.sourceType}', '${channel.id}', '${channel.name}')`)
+    .attr('onclick', `openInitiateMessage('${channel.channelType}', '${channel.id}', '${channel.name}')`)
     .appendTo(chatMsgHeader);
   /*
   if (channel.id == "65c3fdd9527bf900079cefcb"){
@@ -590,7 +590,7 @@ function readMessageStore(channelId, token){
     //
     var channel = channels.find( o => o.id == currentSelectedchannel)
     if (channel){
-      switch (channel.sourceType) {
+      switch (channel.channelType) {
         case "WhatsApp":
           $("#contact-id").html(formatPhoneNumber(channel.contactId))
           $("#contact-id-block").show()
