@@ -298,7 +298,7 @@ function openChannelRegistration(){
         cssClass: 'btn btn-primary',
         action: function(dialog) {
           var params = {
-            sourceType: $("#all-channels").val(),
+            channelType: $("#all-channels").val(),
             name: $("#channel-name").val(),
             id: $("#channel-id").val(),
             contactId: $("#channel-number").val(),
