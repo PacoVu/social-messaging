@@ -513,7 +513,7 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
-      console.log("pollNewMessages", this.newMessages)
+      //console.log("pollNewMessages", this.newMessages)
       res.send({
           status: "ok",
           newMessages: this.newMessages
@@ -686,7 +686,7 @@ var engine = User.prototype = {
             }
           }
         }
-        
+
         var item = {
           id: record.id,
           creationTime: record.creationTime,
@@ -1193,7 +1193,7 @@ var engine = User.prototype = {
               }
             }
           }
-          console.log(jsonObj)
+          //console.log(jsonObj)
           var message = {
                   id: jsonObj.id,
                   creationTime: jsonObj.creationTime,
@@ -1223,7 +1223,7 @@ var engine = User.prototype = {
     },
     processEventNotication: function(eventPayload){
       // Workaround solution
-      console.log("notification payload", eventPayload.body)
+      //console.log("notification payload", eventPayload.body)
       var contentId = eventPayload.body.resource.id
       this._readNotifiedMessage(contentId)
       return

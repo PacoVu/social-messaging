@@ -533,7 +533,7 @@ function readMessageStore(channelId, token){
   var configs = {
     dateFrom: "",
     dateTo: "",
-    perPage: 30
+    perPage: 100
   }
 
   if (token == "next"){
