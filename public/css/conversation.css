@@ -446,9 +446,10 @@ ul {
 .navi-item {
   display: none;
   font-size: 0.9em;
+}
+.next {
   float: right;
 }
-
 .chat-header {
   /*margin-left: -15px !important;*/
   height: 25px;

@@ -75,7 +75,7 @@ function addSelectedChannel(){
     to: "",
     message: ""
   }
-  channel['pageToken'] = ""
+  channel['pageTokens'] = []
   channel['currentSelectedItem'] = `all-${selectedChannel}`
   displayedChannels.push(channel)
   saveUserSettings()
@@ -89,6 +89,7 @@ function saveUserSettings(){
     for (var ch of displayedChannels){
       let c = {...ch}
       c.messageList = []
+      c.pageTokens = []
       updatedChannels.push(c)
     }
     var bodyParams = {
@@ -175,22 +176,23 @@ function createChannelContainer(channel){
       .addClass(`channel-navi`)
       .appendTo(main);
 
+      $(`<a>`,{
+          id: `next-block-${channel.id}`,
+          text: '>>',
+          title: 'next page',
+          href: '#'
+        })
+        .addClass("navi-item next")
+        .appendTo(navigationBar);
+
   $(`<a>`,{
         id: `prev-block-${channel.id}`,
-        text: '<< | ',
+        text: '<<',
         title: 'prev page',
         href: '#'
       }).addClass("navi-item")
       .appendTo(navigationBar);
 
-  $(`<a>`,{
-        id: `next-block-${channel.id}`,
-        text: ' >>',
-        title: 'next page',
-        href: '#'
-      })
-      .addClass("navi-item")
-      .appendTo(navigationBar);
 
   var recipientList = $(`<div id='recipient-list-${channel.id}'>`)
     .addClass(`scrollable-list`)
@@ -341,7 +343,7 @@ function readContacts(){
       }
       //contactList = res.contactList
       //console.log(JSON.stringify(contactList))
-      readMessageStore("")
+      readMessageStore("", "")
     }else if (res.status == "failed") {
       _alert(res.message, "Error")
       window.location.href = "/relogin"
@@ -408,7 +410,7 @@ function sendTextMessage(channelId, message){
           checkSendMessageStatus(msgId)
         },1000, res.message.id)
   */
-        processResult(channel)
+        processResult(channel, 0, 0)
       }else if (res.status == "error"){
         _alert(res.message, "Error")
       }else{
@@ -534,6 +536,18 @@ function readMessageStore(channelId, token){
     perPage: 30
   }
 
+  if (token == "next"){
+    configs['pageToken'] = channel.pageTokens[channel.tokenIndex+1]
+    //channel.tokenIndex++
+  } else if (token == 'prev') {
+    configs['pageToken'] = channel.pageTokens[channel.tokenIndex-1]
+    //channel.tokenIndex--
+  }else{
+    window.clearTimeout(pollingTimer)
+    pollingTimer = null
+  }
+
+  /*
   if (token != ""){
     configs['pageToken'] = token
     pageToken = token
@@ -541,12 +555,14 @@ function readMessageStore(channelId, token){
     window.clearTimeout(pollingTimer)
     pollingTimer = null
   }
+  */
+
   if (pollingTimer){
     window.clearTimeout(pollingTimer)
     pollingTimer = null
   }
 
-  configs['sourceId'] = `["${channel.id}"]`
+  configs['channelId'] = `["${channel.id}"]`
   /*
   var channel = $(`#my-channels option[value="${fromChannel}"]`)
   if (channel){
@@ -598,7 +614,23 @@ function readMessageStore(channelId, token){
       $("#search-number").focus()
       channel.messageList = res.result
       //console.log(messageList)
-      channel.pageTokens = res.pageTokens
+      if (token == ""){
+        channel.pageTokens = []
+        channel.tokenIndex = 0
+        channel.pageTokens.push(res.paging.pageToken)
+        if (res.paging.nextPageToken && res.paging.nextPageToken != "")
+          channel.pageTokens.push(res.paging.nextPageToken)
+        console.log(channel.pageTokens)
+      }else{
+        if (token == "next"){
+          configs['pageToken'] = channel.pageTokens[channel.tokenIndex+1]
+          channel.tokenIndex++
+        } else if (token == 'prev') {
+          configs['pageToken'] = channel.pageTokens[channel.tokenIndex-1]
+          channel.tokenIndex--
+        }
+        //var index = channel.pageTokens.findIndex(o => o === token)
+      }
       processResult(channel, 0, 0)
       // closed until notification payload issues are fixed
       pollingTimer = window.setTimeout(function(){
@@ -634,18 +666,16 @@ function processResult(channel, newMsgCount, threadId){
   for (var message of channel.messageList){
     totalMsg += message.conversations.length
   }
-  //var exist = recipientPhoneNumbers.find(o => o.number === currentSelectedItem)
-  //if (exist == undefined)
-  //currentSelectedItem = "all"
-  //$("#left_pane").show()
-  //$("#downloads").show()
 
   createConversationsList(channel, totalMsg, newMsgCount, threadId)
   console.log("pageTokens", channel.pageTokens)
-  if (channel.pageTokens != undefined){
+  //managePagination(channel)
+  /*
+  if (channel.pageTokens.length > 0){
     if (channel.pageTokens.nextPageToken != ""){
       var link = $(`#next-block-${channel.id}`);
-      link.attr("href",`javascript:readMessageStore('${channel.id}', "${channel.pageTokens.nextPageToken}")`);
+      var token = channel.pageTokens[channel.tokenIndex+1]
+      link.attr("href",`javascript:readMessageStore('${channel.id}', "${token}")`);
       link.css('display', 'inline');
     }else{
       var link = $(`#next-block-${channel.id}`);
@@ -665,14 +695,44 @@ function processResult(channel, newMsgCount, threadId){
   }else {
     $(`#navi-${channel.id}`).hide()
   }
+  */
 }
+
+function managePagination(channel){
+  if (channel.pageTokens.length > 0){
+    if (channel.tokenIndex < channel.pageTokens.length - 1){
+      var link = $(`#next-block-${channel.id}`);
+      link.attr("href",`javascript:readMessageStore('${channel.id}', 'next')`);
+      link.css('display', 'inline');
+    }else{
+      var link = $(`#next-block-${channel.id}`);
+      link.attr("href", "#");
+      link.css('display', 'none');
+    }
+    if (channel.pageTokens.length > channel.tokenIndex-1 ){
+      var link = $(`#prev-block-${channel.id}`);
+      link.attr("href",`javascript:readMessageStore('${channel.id}', 'prev')`);
+      link.css('display', 'inline');
+    }else{
+      var link = $(`#prev-block-${channel.id}`);
+      link.attr("href", "#");
+      link.css('display', 'none');
+    }
+    $(`#navi-${channel.id}`).show()
+  }else {
+    $(`#navi-${channel.id}`).hide()
+  }
+}
+
 function createConversationsList(channel, totalMsg, newMsgCount, threadId){
   var html = ""
+  html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
+  /* // No need to highlight for the "all" convo list!
   if (newMsgCount == 0)
     html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
   else
     html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="new-message-count">${totalMsg}</div></div>`
-
+  */
   for (var convoGroup of channel.messageList){
     // possible statuses: New, Assigned, Replied, UserReply, UserInitiated, Ignored
     var identity = convoGroup.conversations.find( o => o.status == "UserReply" || o.status == "UserInitiated" || o.status == "PendingApproval")

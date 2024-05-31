@@ -373,7 +373,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
-                  channelId: jsonObj.sourceId
+                  channelId: jsonObj.channelId
                 }
           res.send({
               status:"ok",
@@ -430,7 +430,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
-                  channelId: jsonObj.sourceId
+                  channelId: jsonObj.channelId
                 }
           res.send({
               status:"ok",
@@ -491,7 +491,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
-                  channelId: jsonObj.sourceId
+                  channelId: jsonObj.channelId
                 }
           res.send({
               status:"ok",
@@ -513,6 +513,7 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
+      console.log("pollNewMessages", this.newMessages)
       res.send({
           status: "ok",
           newMessages: this.newMessages
@@ -546,7 +547,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
-                  channelId: jsonObj.sourceId
+                  channelId: jsonObj.channelId
                 }
           res.send({
               status:"ok",
@@ -573,7 +574,7 @@ var engine = User.prototype = {
         //view: "Detailed",//req.body.view,
         //dateFrom: req.body.dateFrom,
         //dateTo: req.body.dateTo,
-        source: JSON.parse(req.body.sourceId),
+        source: JSON.parse(req.body.channelId),
         perPage: parseInt(req.body.perPage)
       }
       /*
@@ -607,7 +608,8 @@ var engine = User.prototype = {
             pageTokens: {
               nextPageToken: "",
               previousPageToken: ""
-            }
+            },
+            paging: jsonObj.paging
           }
           //console.log("paging", jsonObj.paging) P@ssw0rd+6592091212
           if (jsonObj.paging.hasOwnProperty("nextPageToken")){
@@ -684,7 +686,7 @@ var engine = User.prototype = {
             }
           }
         }
-
+        
         var item = {
           id: record.id,
           creationTime: record.creationTime,
@@ -702,7 +704,7 @@ var engine = User.prototype = {
           threadId: record.threadId,
           inReplyToContentId: record.inReplyToContentId,
           inReplyToAuthorIdentityId: record.inReplyToAuthorIdentityId,
-          channelId: record.sourceId
+          channelId: record.channelId
         }
         var group = conversationGroups.find(o => o.conversationId == record.threadId)
         if (group){
@@ -1191,7 +1193,7 @@ var engine = User.prototype = {
               }
             }
           }
-
+          console.log(jsonObj)
           var message = {
                   id: jsonObj.id,
                   creationTime: jsonObj.creationTime,
@@ -1209,7 +1211,7 @@ var engine = User.prototype = {
                   threadId: jsonObj.threadId,
                   inReplyToContentId: jsonObj.inReplyToContentId,
                   inReplyToAuthorIdentityId: jsonObj.inReplyToAuthorIdentityId,
-                  channelId: jsonObj.sourceId
+                  channelId: jsonObj.channelId
                 }
           this.newMessages.unshift(message)
         } catch (e) {
@@ -1283,7 +1285,7 @@ var engine = User.prototype = {
         threadId: body.threadId,
         inReplyToContentId: body.inReplyToContentId,
         inReplyToAuthorIdentityId: body.inReplyToAuthorIdentityId,
-        channelId: body.sourceId
+        channelId: body.channelId
       }
       this.newMessages.unshift(message)
     },
