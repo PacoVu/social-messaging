@@ -77,7 +77,8 @@ function showSelectedTemplate(e){
                 "type": "text",
                 "text": "Plumbing maintenance"
               }
-            ]
+            ],
+            "message": "Hello {{1}}, your order for {{2}} is confirmed and will be billed as per your billing cycle. Please call back for any changes."
           }
 
     var mainContainer = $("#structured-content")
@@ -88,6 +89,7 @@ function showSelectedTemplate(e){
     $('<input id="input-1">')
         //.css('style', "display: inline; width: 120px;")
         .addClass('form-control')
+        .attr('onkeyup', `composeSampleMessage('${template.message}')`)
         .appendTo(i1);
 
     var i2 = $('<label>', {text : "Message: "})
@@ -97,7 +99,20 @@ function showSelectedTemplate(e){
     $('<input id="input-2">')
       //.css('style', "display: inline; width: 150px;")
       .addClass('form-control')
+      .attr('onkeyup', `composeSampleMessage('${template.message}')`)
       .appendTo(i2);
+
+    $('<div>', {text : "Sample text: "})
+      .appendTo(mainContainer);
+
+    $('<div id="composed-message">')
+      .appendTo(mainContainer);
+}
+
+function composeSampleMessage(templateMessage){
+  var sampleText = templateMessage.replace('{{1}}', $("#input-1").val())
+  sampleText = sampleText.replace('{{2}}', $("#input-2").val())
+  $('#composed-message').html(sampleText)
 }
 
 function openInitiateWAMessage(channelId, channelName, contactsList){
