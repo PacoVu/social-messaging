@@ -117,6 +117,7 @@ function saveUserSettings(){
 }
 
 function createChannelContainer(channel){
+  console.log(channel)
   var mainContainer = $("#container")
   var main = $(`<div id='main-${channel.id}'>`)
     .addClass('col-lg-3 channel-block')
@@ -354,7 +355,6 @@ function readContacts(){
 }
 
 function openInitiateMessage(channelType, channelId, channelName){
-
     switch (channelType) {
       case "WhatsApp":
         if (channelId == "65c3fdd9527bf900079cefcb"){
@@ -403,7 +403,7 @@ function sendTextMessage(channelId, message){
     posting.done(function( res ) {
       if (res.status == "ok"){
         //console.log(res)
-        var convoGroup = channel.messageList.find(o => o.conversationId === res.message.threadId)
+        var convoGroup = channel.messageList.find(o => o.conversationId === res.message.inReplyToAuthorIdentityId)
         convoGroup.conversations.unshift(res.message)
   /*
         window.setTimeout(function(msgId){
@@ -470,6 +470,46 @@ function pollNewMessages(){
       for (var msg of res.newMessages){
         var channel = displayedChannels.find(o => o.id === msg.channelId)
         if (channel){
+          var threadId = ""
+          if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
+            // inbound msg
+            threadId = msg.authorIdentityId
+            var convoGroup = channel.messageList.find(o => o.conversationId == msg.authorIdentityId)
+            if (convoGroup){
+              let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
+              if (msgIndex >= 0){
+                  convoGroup.conversations[msgIndex] = msg
+              }else{
+                convoGroup.conversations.unshift(msg)
+              }
+            }else{
+              var newConvo = {
+                conversationId: msg.authorIdentityId,
+                conversations: [item]
+              }
+              channel.messageList.unshift(newConvo)
+            }
+          }else{ // outbound msg
+            threadId = msg.inReplyToAuthorIdentityId
+            var convoGroup = channel.messageList.find(o => o.conversationId == msg.inReplyToAuthorIdentityId)
+            if (convoGroup){
+              let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
+              if (msgIndex >= 0){
+                  convoGroup.conversations[msgIndex] = msg
+              }else{
+                convoGroup.conversations.unshift(msg)
+              }
+            }else{
+              var newConvo = {
+                conversationId: record.inReplyToAuthorIdentityId,
+                conversations: [item]
+              }
+              channel.messageList.unshift(newConvo)
+            }
+          }
+          if (res.newMessages.length)
+            processResult(channel, res.newMessages.length, threadId)
+          /*
           var convoGroup = channel.messageList.find(o => o.conversationId === msg.threadId)
           if (convoGroup){
               let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
@@ -480,13 +520,15 @@ function pollNewMessages(){
               }
           }else{
             var newConvo = {
-              conversationId: msg.threadId,
+              conversationId: msg.inReplyToAuthorIdentityId, //msg.threadId,
               conversations: [msg]
             }
             channel.messageList.unshift(newConvo)
           }
+
           if (res.newMessages.length)
             processResult(channel, res.newMessages.length, msg.threadId)
+          */
         }else{
             var channel = $(`#my-channels option[value="${msg.channelId}"]`)
             if (channel){
@@ -620,7 +662,7 @@ function readMessageStore(channelId, token){
         channel.pageTokens.push(res.paging.pageToken)
         if (res.paging.nextPageToken && res.paging.nextPageToken != "")
           channel.pageTokens.push(res.paging.nextPageToken)
-        console.log(channel.pageTokens)
+        //console.log(channel.pageTokens)
       }else{
         if (token == "next"){
           configs['pageToken'] = channel.pageTokens[channel.tokenIndex+1]
@@ -668,7 +710,7 @@ function processResult(channel, newMsgCount, threadId){
   }
 
   createConversationsList(channel, totalMsg, newMsgCount, threadId)
-  console.log("pageTokens", channel.pageTokens)
+  //console.log("pageTokens", channel.pageTokens)
   //managePagination(channel)
   /*
   if (channel.pageTokens.length > 0){

@@ -457,7 +457,6 @@ var engine = User.prototype = {
       if (p){
         try{
           let endpoint = `/cx/social-messaging/v1/contents`
-          console.log(endpoint)
           var bodyParams = {
               inReplyToContentId: body.to,
               //authorIdentityId: '65c3fe3e729ae3000785aac1',
@@ -706,17 +705,33 @@ var engine = User.prototype = {
           inReplyToAuthorIdentityId: record.inReplyToAuthorIdentityId,
           channelId: record.channelId
         }
-        var group = conversationGroups.find(o => o.conversationId == record.threadId)
-        if (group){
-          group.conversations.push(item)
-        }else{
-          var newConvo = {
-            conversationId: record.threadId,
-            //conversationName: "",
-            conversations: [item]
+        if (record.status == "New" || record.status == "Ignored" || record.status == "Replied"){
+          // inbound msg
+          var group = conversationGroups.find(o => o.conversationId == record.authorIdentityId /*record.threadId*/)
+          if (group){
+            group.conversations.push(item)
+          }else{
+            var newConvo = {
+              conversationId: record.authorIdentityId, //record.threadId,
+              //conversationName: "",
+              conversations: [item]
+            }
+            conversationGroups.push(newConvo)
           }
-          conversationGroups.push(newConvo)
+        }else{ // outbound msg
+          var group = conversationGroups.find(o => o.conversationId == record.inReplyToAuthorIdentityId /*record.threadId*/)
+          if (group){
+            group.conversations.push(item)
+          }else{
+            var newConvo = {
+              conversationId: record.inReplyToAuthorIdentityId, //record.threadId,
+              //conversationName: "",
+              conversations: [item]
+            }
+            conversationGroups.push(newConvo)
+          }
         }
+
 
       }
       //console.log(conversationGroups)
@@ -1156,7 +1171,7 @@ var engine = User.prototype = {
       callback(null, 1)
     },
     _readNotifiedMessage: async function(contentId){
-      console.log("_readNotifiedMessage")
+      //console.log("_readNotifiedMessage")
       var endpoint = `/cx/social-messaging/v1/contents/${contentId}`
       var p = await this.rc_platform.getPlatform(this.extensionId)
       if (p){
