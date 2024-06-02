@@ -1,16 +1,12 @@
-//import { EmojiArea } from './assets/js/jquery.emojiarea.js';
-var recipientPhoneNumbers = []
+
 var timeOffset = 0
 var dateStr = ""
 var lastVisited = new Date().getTime() - 604800000
-//var selectedRecipient = undefined
+
 var newItems = 0
-//var pageTokens = undefined
-//var currentSelectedItem = "all"
-var currentSelectedchannel = ""
+
 var pollingTimer = null
-var contactList = []
-var channels = undefined
+var connectedChannels = undefined
 var displayedChannels = []
 var conversationHeight = 50
 
@@ -23,32 +19,9 @@ function init(){
   $(`#${mainMenuItem}`).removeClass("active")
   mainMenuItem = "conversations"
   $(`#${mainMenuItem}`).addClass("active")
-/*
-  $('#send-text').keyup(function(e) {
-    if(e.keyCode == 13) {
-      $(this).trigger("enterKey");
-    }
-  });
-  $('#send-text').on("enterKey", function(e){
-    sendTextMessage($('#send-text').val())
-    $('#send-text').val("")
-  });
-*/
   timeOffset = new Date().getTimezoneOffset()*60000;
-  /*
-  $( "#fromdatepicker" ).datepicker({dateFormat: "yy-mm-dd"});
-  $( "#todatepicker" ).datepicker({dateFormat: "yy-mm-dd"});
 
-  var past30Days = new Date().getTime() - (86400000 * 30)
-
-  $( "#fromdatepicker" ).datepicker('setDate', new Date(past30Days));
-  $( "#todatepicker" ).datepicker('setDate', new Date());
-  */
-  //console.log(window.channels)
-  channels = JSON.parse(window.channels)
-  //displayedChannels = []
-  //console.log(window.displayedChannels)
-  //if (displayedChannels.length == 0)
+  connectedChannels = JSON.parse(window.channels)
   displayedChannels = JSON.parse(window.displayedChannels)
 
   if (displayedChannels.length > 0){
@@ -68,7 +41,7 @@ function addSelectedChannel(){
     _alert("Already displayed")
     return
   }
-  var channel = channels.find( o => o.id == selectedChannel)
+  var channel = connectedChannels.find( o => o.id == selectedChannel)
   channel['messageList'] = []
   channel['params'] = {
     id: selectedChannel,
@@ -117,186 +90,115 @@ function saveUserSettings(){
 }
 
 function createChannelContainer(channel){
-  console.log(channel)
+  channel.currentSelectedItem = `all-${channel.id}`
   var mainContainer = $("#container")
   var main = $(`<div id='main-${channel.id}'>`)
-    .addClass('col-lg-3 channel-block')
-    .appendTo(mainContainer);
+  .addClass('col-lg-3 channel-block')
+  .appendTo(mainContainer);
 
   // add header
-  var header = $(`<div>`) // , { text: channel.name }
-    .addClass(`channel-name`)
-    .appendTo(main);
+  var header = $(`<div>`)
+  .addClass(`channel-name`)
+  .appendTo(main);
 
-    var phoneNumber = ""
-    var avatar = $(`<span>`)
-      .addClass(`avatar`)
-      .appendTo(header);
+  var phoneNumber = ""
+  var avatar = $(`<span>`)
+  .addClass(`avatar`)
+  .appendTo(header);
 
-    if (channel.avatarUri && channel.avatarUri != ""){
-      $(`<img>`, { src: channel.avatarUri })
-        .addClass(`avatar`)
-        .appendTo(avatar);
-      if (channel.channelType == "WhatsApp"){
-        phoneNumber = " - " + formatPhoneNumber(channel.contactId)
-      }
-    }else{ // use media icon
-      if (channel.channelType == "FaceBook"){
-        $(`<img>`, { src: './img/facebook.png' })
-          .addClass(`avatar`)
-          .appendTo(avatar);
-      }else if (channel.channelType == "LinkedIn"){
-        $(`<img>`, { src: './img/linkedin.png' })
-          .addClass(`avatar`)
-          .appendTo(avatar);
-      }else if (channel.channelType == "WhatsApp"){
-        $(`<img>`, { src: './img/whatsapp.png' })
-          .addClass(`avatar`)
-          .appendTo(avatar);
-          phoneNumber = " - " + formatPhoneNumber(channel.contactId)
-      }else if (channel.channelType == "Apple"){
-        $(`<img>`, { src: './img/apple.png' })
-          .addClass(`avatar`)
-          .appendTo(avatar);
-      }else if (channel.channelType == "Twitter"){
-        $(`<img>`, { src: './img/twitter.png' })
-          .addClass(`avatar`)
-          .appendTo(avatar);
-      }
+  if (channel.avatarUri && channel.avatarUri != ""){
+    $(`<img>`, { src: channel.avatarUri })
+    .addClass(`avatar`)
+    .appendTo(avatar);
+    if (channel.channelType == "WhatsApp"){
+      phoneNumber = " - " + formatPhoneNumber(channel.contactId)
     }
-
-    var name = $(`<span>`, { text: `${channel.name}${phoneNumber}` })
-        .appendTo(header);
-
-    var closeBtn = $(`<img>`, { src: './img/close.png' })
-      .addClass(`close-tab`)
-      .attr('onclick', `closeTab('${channel.id}')`)
+  }else{ // use media icon
+    if (channel.channelType == "FaceBook"){
+      $(`<img>`, { src: './img/facebook.png' })
+      .addClass(`avatar`)
       .appendTo(avatar);
+    }else if (channel.channelType == "LinkedIn"){
+      $(`<img>`, { src: './img/linkedin.png' })
+      .addClass(`avatar`)
+      .appendTo(avatar);
+    }else if (channel.channelType == "WhatsApp"){
+      $(`<img>`, { src: './img/whatsapp.png' })
+      .addClass(`avatar`)
+      .appendTo(avatar);
+      phoneNumber = " - " + formatPhoneNumber(channel.contactId)
+    }else if (channel.channelType == "Apple"){
+      $(`<img>`, { src: './img/apple.png' })
+      .addClass(`avatar`)
+      .appendTo(avatar);
+    }else if (channel.channelType == "Twitter"){
+      $(`<img>`, { src: './img/twitter.png' })
+      .addClass(`avatar`)
+      .appendTo(avatar);
+    }
+  }
 
-  var navigationBar = $(`<div id='navi-${channel.id}'>`) // , { text: channel.name }
-      .addClass(`channel-navi`)
-      .appendTo(main);
+  var name = $(`<span>`, { text: `${channel.name}${phoneNumber}` })
+  .appendTo(header);
 
-      $(`<a>`,{
-          id: `next-block-${channel.id}`,
-          text: '>>',
-          title: 'next page',
-          href: '#'
-        })
-        .addClass("navi-item next")
-        .appendTo(navigationBar);
+  var closeBtn = $(`<img>`, { src: './img/close.png' })
+  .addClass(`close-tab`)
+  .attr('onclick', `closeTab('${channel.id}')`)
+  .appendTo(avatar);
+
+  var navigationBar = $(`<div id='navi-${channel.id}'>`)
+  .addClass(`channel-navi`)
+  .appendTo(main);
 
   $(`<a>`,{
-        id: `prev-block-${channel.id}`,
-        text: '<<',
-        title: 'prev page',
-        href: '#'
-      }).addClass("navi-item")
-      .appendTo(navigationBar);
+    id: `next-block-${channel.id}`,
+    text: '>>',
+    title: 'next page',
+    href: '#'
+  })
+  .addClass("navi-item next")
+  .appendTo(navigationBar);
+
+  $(`<a>`,{
+    id: `prev-block-${channel.id}`,
+    text: '<<',
+    title: 'prev page',
+    href: '#'
+  }).addClass("navi-item")
+  .appendTo(navigationBar);
 
 
   var recipientList = $(`<div id='recipient-list-${channel.id}'>`)
-    .addClass(`scrollable-list`)
-    .appendTo(main);
+  .addClass(`scrollable-list`)
+  .appendTo(main);
 
   var chatMsgHeader = $(`<div>`, { text: "Chat messages"})
-    .addClass('chat-header')
-    .appendTo(main);
+  .addClass('chat-header')
+  .appendTo(main);
 
   var newConvo = $(`<button>`, {text: "New Conversation"})
-    .addClass("new-convo-button")
-    .attr('onclick', `openInitiateMessage('${channel.channelType}', '${channel.id}', '${channel.name}')`)
-    .appendTo(chatMsgHeader);
-  /*
-  if (channel.id == "65c3fdd9527bf900079cefcb"){
-    // only this channel support template
-  }
-  */
+  .addClass("new-convo-button")
+  .attr('onclick', `openInitiateMessage('${channel.channelType}', '${channel.id}', '${channel.name}')`)
+  .appendTo(chatMsgHeader);
 
   var conversationList = $(`<div id='conversation-${channel.id}'>`)
-    .addClass(`conversation`)
-    .appendTo(main);
+  .addClass(`conversation`)
+  .appendTo(main);
 
-    var inputField = $(`<div id='message-input-${channel.id}'>`)
-      .css('style', "display: none")
-      .addClass(`message-input`)
-      .appendTo(main);
+  var inputField = $(`<div id='message-input-${channel.id}'>`)
+  .css('style', "display: none")
+  .addClass(`message-input`)
+  .appendTo(main);
 
-    /*
-    var inputArea =  $(`<div id='input-area-${channel.id}' data-emojiarea data-type="unicode" data-global-picker="false">`)
-    var icon = $(`<span>`)
-      .addClass('emoji-button')
-      .css('style', "height: 40px")
-      .appendTo(inputArea);
+  var html = `<textarea id="send-text-${channel.id}" class="emojionearea-editor"/>`
+  html += `<div id="container-${channel.id}" class="emojionearea-container"></div>`
+  html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
+  inputField.html(html)
 
-    var img = $(`<img>`, { src: "/img/emoji.png" })
-      .addClass('medium-icon')
-      .appendTo(icon);
-
-    var msgField = $(`<input type="text" id='send-text-${channel.id}'>`)
-      .addClass('form-control send-text')
-      .css('style', "display: inline; height: 40px")
-      .appendTo(inputArea);
-
-    inputArea.appendTo(inputField)
-    */
-    //var html = '<div data-emojiarea data-type="unicode" data-global-picker="false">'
-    //html += '<span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>'
-    //html = `<div class="send-text"><textarea id="send-text-${channel.id}" class="form-control text-input" rows="2" cols="50" placeholder="Reply to this conversation"></textarea>`
-    var html = `<textarea id="send-text-${channel.id}" class="emojionearea-editor"/>`
-    html += `<div id="container-${channel.id}" class="emojionearea-container"></div>`
-    html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
-
-
-
-      //html += '<div id="container1" class="emojionearea-container"></div>'
-      //html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
-      //html += `<img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"></img>`
-      inputField.html(html)
-      //$('#emojionearea1').height($('#container1').outerHeight());
-
-      $(`#send-text-${channel.id}`).emojioneArea({
-              container: $(`#container-${channel.id}`), // by jQuery object
-              searchPosition: "bottom"
-          });
-    //$(document).ready(function() {
-      //$(`#send-text-${channel.id}`).emojioneArea({
-      //  hidePickerOnBlur: true
-      //});
-    //});
-
-    /*
-    $(`#send-text-${channel.id}`).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-        */
-/*
-    $(`#send-text-${channel.id}`).keyup(function(e) {
-      if(e.keyCode == 13) {
-        $(this).trigger("enterKey");
-      }
-    });
-    $(`#send-text-${channel.id}`).on("enterKey", function(e){
-      sendTextMessage(channel.id, $(`#send-text-${channel.id}`).val())
-      $(`#send-text-${channel.id}`).val("")
-    });
-*/
-  /*
-  <div class="col-lg-3">
-    <div class="block_space">
-      <input type="button" class="form-control" style="display: inline;width: 150px;" value="Start a conversation" onclick="openInitiateMessage()" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Initiate a new conversation"></input>
-    </div>
-    <div id="recipient-list-1" class="scrollable-list"></div>
-    <div id="conversation-1" class="conversation"></div>
-    <div id="message-input-1" style="display: none">
-      <div data-emojiarea data-type="unicode" data-global-picker="false">
-        <span class="emoji-button" style="height: 40px"><img class="medium-icon" src="/img/emoji.png"></img></span>
-        <input type="text" id="send-text" class="form-control" style="display: inline;height: 40px" size="auto" placeholder="Enter text here" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Reply to this conversation"></input>
-      </div>
-    </div>
-  </div>
-  */
+  $(`#send-text-${channel.id}`).emojioneArea({
+    container: $(`#container-${channel.id}`),
+    searchPosition: "bottom"
+  });
 }
 
 
@@ -310,20 +212,15 @@ function closeTab(channelId){
   }
 }
 
-function auto_height(elem) {  /* javascript */
+function auto_height(elem) {
     elem.style.height = '1px';
     elem.style.height = `${elem.scrollHeight}px`;
 }
 
 function setElementsHeight(){
-  var height = $(window).height() //- $("#footer").outerHeight(true)
+  var height = $(window).height()
   var swindow = height - $("#menu_header").height()
-  //$("#message-col").height(swindow)
   $("#menu-pane").height(swindow)
-  //$("#control-list-col").height(swindow)
-
-  //$("#recipient-list").height(swindow - ($("#col2-header").outerHeight(true) + 120))
-  //$("#conversation").height(swindow - ($("#conversation-header").outerHeight(true) + conversationHeight))
 }
 
 function readContacts(){
@@ -405,11 +302,6 @@ function sendTextMessage(channelId, message){
         //console.log(res)
         var convoGroup = channel.messageList.find(o => o.conversationId === res.message.inReplyToAuthorIdentityId)
         convoGroup.conversations.unshift(res.message)
-  /*
-        window.setTimeout(function(msgId){
-          checkSendMessageStatus(msgId)
-        },1000, res.message.id)
-  */
         processResult(channel, 0, 0)
       }else if (res.status == "error"){
         _alert(res.message, "Error")
@@ -428,37 +320,6 @@ function sendTextMessage(channelId, message){
     });
   }
 }
-
-/*
-function checkSendMessageStatus(messageId){
-  var url = `poll-sending-message-status?id=${messageId}`
-  var getting = $.get( url );
-  getting.done(function( res ) {
-    if (res.status == "ok"){
-      if (res.message.synchronizationStatus == "ExportPending"){
-        window.setTimeout(function(msgId){
-          checkSendMessageStatus(msgId)
-        },3000, messageId)
-      }else {
-        var convoGroup = messageList.find(o => o.conversationId === res.message.threadId)
-        if (convoGroup){
-          let msgIndex = convoGroup.conversations.findIndex(o => o.id === res.message.id)
-          if (msgIndex >= 0){
-              convoGroup.conversations[msgIndex] = res.message
-              processResult()
-          }
-        }
-      }
-    }else if (res.status == "error"){
-      _alert(res.message, "Error")
-    }else{
-      window.setTimeout(function(){
-        window.location.href = "/relogin"
-      },8000)
-    }
-  });
-}
-*/
 
 function pollNewMessages(){
   var url = "poll-new-messages"
@@ -509,26 +370,6 @@ function pollNewMessages(){
           }
           if (res.newMessages.length)
             processResult(channel, res.newMessages.length, threadId)
-          /*
-          var convoGroup = channel.messageList.find(o => o.conversationId === msg.threadId)
-          if (convoGroup){
-              let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
-              if (msgIndex >= 0){
-                  convoGroup.conversations[msgIndex] = msg
-              }else{
-                convoGroup.conversations.unshift(msg)
-              }
-          }else{
-            var newConvo = {
-              conversationId: msg.inReplyToAuthorIdentityId, //msg.threadId,
-              conversations: [msg]
-            }
-            channel.messageList.unshift(newConvo)
-          }
-
-          if (res.newMessages.length)
-            processResult(channel, res.newMessages.length, msg.threadId)
-          */
         }else{
             var channel = $(`#my-channels option[value="${msg.channelId}"]`)
             if (channel){
@@ -589,62 +430,12 @@ function readMessageStore(channelId, token){
     pollingTimer = null
   }
 
-  /*
-  if (token != ""){
-    configs['pageToken'] = token
-    pageToken = token
-  }else{
-    window.clearTimeout(pollingTimer)
-    pollingTimer = null
-  }
-  */
-
   if (pollingTimer){
     window.clearTimeout(pollingTimer)
     pollingTimer = null
   }
 
   configs['channelId'] = `["${channel.id}"]`
-  /*
-  var channel = $(`#my-channels option[value="${fromChannel}"]`)
-  if (channel){
-    var text = channel.text()
-    var textParts = text.split("+")
-    if (textParts.length > 1){
-      var nameWithNewItems = textParts[0].trimEnd()
-      console.log(nameWithNewItems)
-      $(`#my-channels option[value="${fromChannel}"]`).text(nameWithNewItems)
-      $('#my-channels').selectpicker('refresh');
-      var count = parseInt(textParts[1].trim())
-      newItems -= count
-      if (newItems > 0)
-        $("#new-item-indicator").html(`+${newItems}`)
-      else
-        $("#new-item-indicator").html('')
-    }
-  }
-  */
-
-  /*
-  if (currentSelectedchannel != fromChannel){
-    currentSelectedchannel = fromChannel
-    currentSelectedItem = "all"
-    //
-    var channel = channels.find( o => o.id == currentSelectedchannel)
-    if (channel){
-      switch (channel.channelType) {
-        case "WhatsApp":
-          $("#contact-id").html(formatPhoneNumber(channel.contactId))
-          $("#contact-id-block").show()
-          break;
-        default:
-        $("#contact-id-block").hide()
-          break;
-      }
-    }
-  }
-  */
-  //params.sourceId = configs.sourceId
   channel.messageList = []
   var readingAni = "<img src='./img/logging.gif' style='width:50px;height:50px;display: block;margin:auto;'></img>"
   $("#conversation").html(readingAni)
@@ -701,8 +492,6 @@ function readMessageStore(channelId, token){
 function processResult(channel, newMsgCount, threadId){
   var totalInbound = 0
   var totalOutbound = 0
-  recipientPhoneNumbers = []
-  //console.log(channel)
 
   var totalMsg = 0
   for (var message of channel.messageList){
@@ -712,32 +501,6 @@ function processResult(channel, newMsgCount, threadId){
   createConversationsList(channel, totalMsg, newMsgCount, threadId)
   //console.log("pageTokens", channel.pageTokens)
   //managePagination(channel)
-  /*
-  if (channel.pageTokens.length > 0){
-    if (channel.pageTokens.nextPageToken != ""){
-      var link = $(`#next-block-${channel.id}`);
-      var token = channel.pageTokens[channel.tokenIndex+1]
-      link.attr("href",`javascript:readMessageStore('${channel.id}', "${token}")`);
-      link.css('display', 'inline');
-    }else{
-      var link = $(`#next-block-${channel.id}`);
-      link.attr("href", "#");
-      link.css('display', 'none');
-    }
-    if (channel.pageTokens.previousPageToken != ""){
-      var link = $(`#prev-block-${channel.id}`);
-      link.attr("href",`javascript:readMessageStore('${channel.id}', "${channel.pageTokens.previousPageToken}")`);
-      link.css('display', 'inline');
-    }else{
-      var link = $(`#prev-block-${channel.id}`);
-      link.attr("href", "#");
-      link.css('display', 'none');
-    }
-    $(`#navi-${channel.id}`).show()
-  }else {
-    $(`#navi-${channel.id}`).hide()
-  }
-  */
 }
 
 function managePagination(channel){
@@ -816,10 +579,7 @@ function createConversationsList(channel, totalMsg, newMsgCount, threadId){
       else
         outboundCount++
     }
-    /*
-    if (threadId == 0)
-      html += `<span class="recipient-info">${name}</span><span class="message-count">${inboundCount}/${outboundCount}</span>`
-    */
+
     if (convoGroup.conversationId == threadId)
       html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="new-message-count">${inboundCount}/${outboundCount}</span>`
     else
@@ -832,8 +592,6 @@ function createConversationsList(channel, totalMsg, newMsgCount, threadId){
 }
 
 function showConversation(channelId, selectedConvo, name, threadId){
-  //console.log("recipient", selectedConvo)
-  //console.log("channel id", channelId)
   var channel = displayedChannels.find(o => o.id === channelId)
 
   $(`#${channel.currentSelectedItem}`).removeClass("active");
@@ -853,8 +611,8 @@ function showConversation(channelId, selectedConvo, name, threadId){
     //var totalMessage = 0
     if (selectedConvo == `all-${channelId}`){
       $(`#message-input-${channel.id}`).hide()
-      conversationHeight = 50
-      setElementsHeight()
+      //conversationHeight = 50
+      //setElementsHeight()
       //$("#conversation-title").html(`All conversations`)
       //totalMessage = messageList.length
       channel.params.to = ""
@@ -872,13 +630,11 @@ function showConversation(channelId, selectedConvo, name, threadId){
         }
       }
     }else { // display selected conversation
-      //$(`#${currentSelectedItem}-count`).remove()
-      conversationHeight = 312
-      setElementsHeight()
-      //params.to = recipient //selectedRecipient
+      //conversationHeight = 312
+      //setElementsHeight()
       channel.params.message = ""
       channel.params.to = ""
-      $(`#message-input-${channel.id}`).show()
+      $(`#message-input-${channel.id}`).prop('disabled', false); //show()
       var title = `<span>${name}</span>`
       //$("#conversation-title").html(title)
 
@@ -907,7 +663,6 @@ function showConversation(channelId, selectedConvo, name, threadId){
     $(`#conversation-${channel.id}`).html(html)
     $(`#conversation-${channel.id}`).animate({ scrollTop: $(`#conversation-${channel.id}`)[0].scrollHeight}, 100);
   }else{
-    //$("#conversation-title").html("")
     $(`#conversation-${channel.id}`).html("No content")
     $(`#message-input-${channel.id}`).hide()
   }
@@ -918,18 +673,6 @@ function createConversationItem_period(channelId, item, conversation){
   var line = ""
   var date = new Date(item.creationTime)
   var createdTimestamp = date.getTime() //- timeOffset
-  var createdDate = new Date (createdTimestamp)
-  let dateOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }
-  var createdDateStr = createdDate.toLocaleDateString("en-US", dateOptions)
-  let timeOptions = { hour12: false }
-  var timeStr =  createdDate.toLocaleTimeString("en-US", timeOptions).substr(0, 5)
-
-  if (dateStr != createdDateStr){
-    dateStr = createdDateStr
-    // create date separation
-    line += `<li class="separator"><div class="date-line">----- ${dateStr} -----</div></li>`
-  }
-
   var nowTimestamp = new Date().getTime()
   var ageInSeconds = (nowTimestamp - createdTimestamp) / 1000
   var age = formatMessageAge(ageInSeconds)
@@ -941,8 +684,8 @@ function createConversationItem_period(channelId, item, conversation){
       line += `<div class="chat-text">${msg}</div>`
       line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
     }else if (item.synchronizationStatus == "ExportPending"){
-      line += `<div class="chat-text warning">${msg}</div>`
       line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
+      line += `<div class="chat-text warning">${msg}</div>`
     }else if (item.synchronizationStatus == "ExportAborted"){
       line += `<div class="chat-text error">${msg}</div>`
       line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
@@ -955,7 +698,7 @@ function createConversationItem_period(channelId, item, conversation){
     //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
   }else{
     line += '<li class="chat-left">'
-    line += `<div class="chat-avatar chat-name">${item.authorName}<br>${age}</div>`
+    line += `<div class="chat-avatar chat-name">${age}<br>${item.authorName}</div>`
 
     if (item.contentUri != ""){
       //console.log("contenUri", item.contentUri)
@@ -1005,7 +748,7 @@ function createConversationItem(channelId, item, conversation){
     //line += `<div class="chat-avatar chat-name">${timeStr}<br><a class="reply" href="#" onclick="openReplyForm('${item.id}', '${item.authorIdentityId}');return false;">${item.authorName}</a></div>`
   }else{
     line += '<li class="chat-left">'
-    line += `<div class="chat-avatar chat-name">${item.authorName}<br>${timeStr}</div>`
+    line += `<div class="chat-avatar chat-name">${timeStr}<br>${item.authorName}</div>`
 
     if (item.contentUri != ""){
       //console.log("contenUri", item.contentUri)

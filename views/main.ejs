@@ -26,24 +26,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.7/css/bootstrap-dialog.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <!-- need this to support FireFox -->
-    <!--
-    <link  href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  	<script src="http://code.jquery.com/jquery-1.9.0.js"></script>
-  	<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    -->
     <link rel="stylesheet" type="text/css" href="../dist/emojionearea.min.css" media="screen">
     <script type="text/javascript" src="../dist/emojionearea.js"></script>
-
-    <!-- test emoji -->
-    <!--
-    <link rel="stylesheet" type="text/css" href="./assets/css/reset.css">
-    <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
-    -->
-    <!--link rel="stylesheet" type="text/css" href="./assets/css/emojiarea.css"-->
-    <!--<script src="./assets/js/jquery.emojiarea.js"></script>-->
-    <!--script src="./assets/js/main.js"></script-->
-    <!-- test emoji end -->
     <script>
       window.userName = '<%- userName %>'
       window.channels = '<%- JSON.stringify(channels) %>'
@@ -104,7 +88,6 @@
     <form id="send_new_wa_form">
       <div class="block_space">
         <span id="contacts-block" style="display: none;"><label class="" for="my-numbers">Contacts</label>
-          <!--select id="contact-group" class="selectpicker filter-select" onchange="loadContactsFromGroup(this)" title="Select group" style="display: inline;width: 100px"></select-->
           <select id="contact-list" class="selectpicker filter-select" onchange="addToRecipient(this)" title="Select contact" style="display: inline;width: 100px"></select>
           <label class="" for="my-numbers">To</label>
           <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
@@ -118,17 +101,10 @@
         <label class="" for="language-list">Template language</label>
         <select id="language-list" class="selectpicker filter-select" title="Select a language" style="display: inline;width: 100px"></select>
       </div>
-      <div id="structured-content" class="block_space">
-        <!--textarea id="new-wa-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea-->
-      </div>
+      <div id="structured-content" class="block_space"></div>
     </form>
 
     <form id="send_new_fb_form">
-
-      <!--div class="block_space">
-        <label class="" for="my-numbers">To</label>
-        <input id="to-new-number" class="form-control" placeholder="Enter phone number" style="display: inline;width: 180px;margin-bottom: 5px"></input>
-      </div-->
       <div class="block_space">
         <textarea id="new-fb-text-message" cols=70 rows="4" class="form-control" placeholder="Enter text message..."></textarea>
       </div>
