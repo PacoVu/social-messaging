@@ -299,7 +299,7 @@ function sendTextMessage(channelId, message){
     var posting = $.post( url, channel.params );
     posting.done(function( res ) {
       if (res.status == "ok"){
-        //console.log(res)
+        //console.log("Send response", res)
         var convoGroup = channel.messageList.find(o => o.conversationId === res.message.inReplyToAuthorIdentityId)
         convoGroup.conversations.unshift(res.message)
         processResult(channel, 0, 0)
@@ -344,11 +344,11 @@ function pollNewMessages(){
                 convoGroup.conversations.unshift(msg)
               }
             }else{
-              var newConvo = {
+              convoGroup = {
                 conversationId: msg.authorIdentityId,
                 conversations: [item]
               }
-              channel.messageList.unshift(newConvo)
+              channel.messageList.unshift(convoGroup)
             }
           }else{ // outbound msg
             threadId = msg.inReplyToAuthorIdentityId
@@ -361,11 +361,11 @@ function pollNewMessages(){
                 convoGroup.conversations.unshift(msg)
               }
             }else{
-              var newConvo = {
+              convoGroup = {
                 conversationId: record.inReplyToAuthorIdentityId,
                 conversations: [item]
               }
-              channel.messageList.unshift(newConvo)
+              channel.messageList.unshift(convoGroup)
             }
           }
           if (res.newMessages.length)
@@ -630,11 +630,9 @@ function showConversation(channelId, selectedConvo, name, threadId){
         }
       }
     }else { // display selected conversation
-      //conversationHeight = 312
-      //setElementsHeight()
       channel.params.message = ""
       channel.params.to = ""
-      $(`#message-input-${channel.id}`).prop('disabled', false); //show()
+      //$(`#message-input-${channel.id}`).prop('disabled', false); //show()
       var title = `<span>${name}</span>`
       //$("#conversation-title").html(title)
 
@@ -654,7 +652,30 @@ function showConversation(channelId, selectedConvo, name, threadId){
         // disable the input for now. Should be enable for initiating a new message!
         $(`#message-input-${channel.id}`).hide()
       }else{
-        $(`#message-input-${channel.id}`).show()
+        if (channel.channelType == "WhatsApp"){
+          // Check convestion expiration
+          var lastMsgTimestamp = 0
+          for (var msg of convoGroup.conversations){
+            if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
+              //if (msg.synchronizationStatus == "Success"){
+                lastMsgTimestamp = new Date(msg.creationTime)
+                break
+              //}
+            }
+            html += createConversationItem(channel.id, msg, true)
+          }
+
+          let msgAge = new Date().getTime() - lastMsgTimestamp
+          console.log(msgAge)
+          if (msgAge >= 24 * 3600 * 1000){
+            $(`#message-input-${channel.id}`).show()
+            $(`#container-${channel.id}`).html("WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message.")
+          }else{
+            $(`#message-input-${channel.id}`).show()
+          }
+          // end
+        }else
+          $(`#message-input-${channel.id}`).show()
       }
     }
     //$("#total").html(`${totalMessage} messages`)
@@ -668,7 +689,7 @@ function showConversation(channelId, selectedConvo, name, threadId){
   }
 }
 
-function createConversationItem_period(channelId, item, conversation){
+function createConversationItem(channelId, item, conversation){
   //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)
@@ -684,8 +705,8 @@ function createConversationItem_period(channelId, item, conversation){
       line += `<div class="chat-text">${msg}</div>`
       line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
     }else if (item.synchronizationStatus == "ExportPending"){
-      line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
       line += `<div class="chat-text warning">${msg}</div>`
+      line += `<div class="chat-avatar chat-name">Pending<br>${item.agentName}</div>`
     }else if (item.synchronizationStatus == "ExportAborted"){
       line += `<div class="chat-text error">${msg}</div>`
       line += `<div class="chat-avatar chat-name">${age}<br>${item.agentName}</div>`
@@ -711,7 +732,7 @@ function createConversationItem_period(channelId, item, conversation){
   return line
 }
 
-function createConversationItem(channelId, item, conversation){
+function createConversationItem_time(channelId, item, conversation){
   //console.log("item", item)
   var line = ""
   var date = new Date(item.creationTime)

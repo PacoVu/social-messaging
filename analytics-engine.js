@@ -19,86 +19,7 @@ var engine = Analytics.prototype = {
         channels: []
       }
     },
-    /*
-    {
-            "id": "65f0837a54c4a400070b2d57",
-            "creationTime": "2024-03-12T16:31:55Z",
-            "lastModifiedTime": "2024-03-12T16:31:55Z",
-            "authorIdentityId": "65c3fe3e729ae3000785aac1",
-            "body": "Hi Craig! How can I be of assistance?",
-            "bodyInputFormat": "Text",
-            "categoryIds": [],
-            "creatorId": "63317542004",
-            "interventionId": null,
-            "language": "En",
-            "remotelyDeleted": false,
-            "sourceId": "65c3fdd9527bf900079cefcb",
-            "sourceUri": null,
-            "synchronizationStatus": "Success",
-            "status": "UserReply",
-            "threadId": "65f082e23d79c40008cdbadc",
-            "inReplyToContentId": "65f082e23d79c40008cdbad8",
-            "inReplyToAuthorIdentityId": "65f082e23d79c40008cdbad9",
-            "attachments": [],
-            "autoSubmitted": true,
-            "identityGroupId": "65c3fe3e729ae3000785aac2",
-            "bodyFormatted": {
-              "Text": "Hi Craig! How can I be of assistance?",
-              "Html": "<p>Hi Craig! How can I be of assistance?</p>"
-            },
-            "contextData": null,
-            "createdFrom": "Api",
-            "public": false,
-            "published": true,
-            "sourceType": "WhatsApp",
-            "structuredContentSupported": true,
-            "type": "Message",
-            "synchronizationError": null,
-            "capabilitiesSupported": [
-              "template",
-              "list"
-            ]
-          },
-          {
-            "id": "65f082e23d79c40008cdbad8",
-            "creationTime": "2024-03-12T16:29:21Z",
-            "lastModifiedTime": "2024-03-12T16:29:22Z",
-            "authorIdentityId": "65f082e23d79c40008cdbad9",
-            "body": "Craig has a question",
-            "bodyInputFormat": "Text",
-            "categoryIds": [],
-            "creatorId": null,
-            "interventionId": null,
-            "language": "En",
-            "remotelyDeleted": false,
-            "sourceId": "65c3fdd9527bf900079cefcb",
-            "sourceUri": null,
-            "synchronizationStatus": "Success",
-            "status": "New",
-            "threadId": "65f082e23d79c40008cdbadc",
-            "inReplyToContentId": null,
-            "inReplyToAuthorIdentityId": "65c3fe3e729ae3000785aac1",
-            "attachments": [],
-            "autoSubmitted": false,
-            "identityGroupId": "65f082e23d79c40008cdbada",
-            "bodyFormatted": {
-              "Text": "Craig has a question",
-              "Html": "<p>Craig has a question</p>"
-            },
-            "contextData": null,
-            "createdFrom": "Synchronizer",
-            "public": false,
-            "published": true,
-            "sourceType": "WhatsApp",
-            "structuredContentSupported": true,
-            "type": "Message",
-            "synchronizationError": null,
-            "capabilitiesSupported": [
-              "template",
-              "list"
-            ]
-          },
-    */
+
     analyzeMessage: function(message){
       //console.log("check:", message.synchronizationStatus, " / ", message.sourceType)
       // by month
@@ -174,12 +95,12 @@ var engine = Analytics.prototype = {
         }
       }
       // by channel
-      var channel = this.analyticsData.channels.find( o => o.channelId == message.sourceId)
+      var channel = this.analyticsData.channels.find( o => o.channelId == message.channelId)
       if (!channel){
-        var connectedChannel = this.connectedChannels.find( o => o.id == message.sourceId)
+        var connectedChannel = this.connectedChannels.find( o => o.id == message.channelId)
         var item = {
-          channelId: message.sourceId,
-          channelName: (connectedChannel) ? connectedChannel.name : message.sourceId,
+          channelId: message.channelId,
+          channelName: (connectedChannel) ? connectedChannel.name : message.channelId,
           outboundCount: 0,
           inboundCount: 0,
           deliveredCount: 0,

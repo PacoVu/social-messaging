@@ -281,7 +281,7 @@ function displayMessageDirection(breakout){
   if (breakout == "monthly"){
     var monthlyData = analyticsData.months
     var direction_params = [['Month', 'Success Outbound', 'Failed Outbound','Inbound']]
-    var response_params = [['Month', 'Response rate (Inbound / Success Outbound)']];
+    var response_params = [['Month', 'Response rate (Success Outbound / Inbound)']];
     for (var i=monthlyData.length-1; i>=0; i--) {
       var m =  monthlyData[i]
       //var item = [ convertMonth(m.month), m.outboundCount, m.inboundCount ]
@@ -289,7 +289,7 @@ function displayMessageDirection(breakout){
       direction_params.push(item)
       var rate = 0.0
       if (m.deliveredCount > 0)
-        rate = (m.inboundCount / m.deliveredCount) * 100
+        rate = (m.deliveredCount/m.inboundCount) * 100
       item = [convertMonth(m.month), parseFloat(formatFloatNumber(rate))]
       response_params.push(item)
     }
@@ -300,7 +300,7 @@ function displayMessageDirection(breakout){
   }else if (breakout == "bychannel"){
     var channels = analyticsData.channels
     var direction_params = [[ 'Channel', 'Success Outbound', 'Failed Outbound', 'Inbound' ]];
-    var response_params = [['Month', 'Response rate (Inbound / Success Outbound)']];
+    var response_params = [['Month', 'Response rate (Success Outbound / Inbound)']];
     for (var channel of channels) {
       var channelName = channel.channelName
       //var item = [ serviceNumber, m.outboundCount, m.inboundCount ]
@@ -308,7 +308,7 @@ function displayMessageDirection(breakout){
       direction_params.push(item)
       var rate = 0.0
       if (channel.deliveredCount > 0)
-        rate = (channel.inboundCount / channel.deliveredCount) * 100
+        rate = (channel.deliveredCount/channel.inboundCount) * 100
       item = [channelName, parseFloat(formatFloatNumber(rate))]
       response_params.push(item)
     }
@@ -342,7 +342,7 @@ function displayMessageDirectionTable(breakout){
       dTotal += `<td>${m.outboundCount + m.inboundCount}</td>`
       var rate = 0.0
       if (m.outboundCount > 0)
-        rate = (m.inboundCount / m.outboundCount) * 100
+        rate = (m.outboundCount/m.inboundCount) * 100
       dRate += `<td>${formatFloatNumber(rate)} %</td>`
     }
     writeTitle('statistics-title', '# Messages by direction per month')
@@ -358,7 +358,7 @@ function displayMessageDirectionTable(breakout){
       dTotal += `<td>${channel.outboundCount + channel.inboundCount}</td>`
       var rate = 0.0
       if (channel.outboundCount > 0)
-        rate = (channel.inboundCount / channel.outboundCount) * 100
+        rate = (channel.outboundCount/channel.inboundCount) * 100
       dRate += `<td>${formatFloatNumber(rate)} %</td>`
     }
     writeTitle('statistics-title', '# Messages by direction per channel')
