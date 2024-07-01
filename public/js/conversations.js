@@ -49,7 +49,7 @@ function addSelectedChannel(){
     message: ""
   }
   channel['pageTokens'] = []
-  channel['currentSelectedItem'] = `all-${selectedChannel}`
+  channel['currentSelectedItem'] = `${selectedChannel}-all`
   displayedChannels.push(channel)
   saveUserSettings()
   createChannelContainer(channel)
@@ -90,7 +90,7 @@ function saveUserSettings(){
 }
 
 function createChannelContainer(channel){
-  channel.currentSelectedItem = `all-${channel.id}`
+  channel.currentSelectedItem = `${channel.id}-all`
   var mainContainer = $("#container")
   var main = $(`<div id='main-${channel.id}'>`)
   .addClass('col-lg-3 channel-block')
@@ -300,7 +300,9 @@ function sendTextMessage(channelId, message){
     posting.done(function( res ) {
       if (res.status == "ok"){
         //console.log("Send response", res)
-        var convoGroup = channel.messageList.find(o => o.conversationId === res.message.inReplyToAuthorIdentityId)
+        //var conversationId = `${record.channelId}-${record.authorIdentityId}`
+        var pairedConversationId = `${channel.id}-${res.message.inReplyToAuthorIdentityId}`
+        var convoGroup = channel.messageList.find(o => o.conversationId === pairedConversationId /*res.message.inReplyToAuthorIdentityId*/)
         convoGroup.conversations.unshift(res.message)
         processResult(channel, 0, 0)
       }else if (res.status == "error"){
@@ -334,7 +336,9 @@ function pollNewMessages(){
           var threadId = ""
           if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
             // inbound msg
-            threadId = msg.authorIdentityId
+            threadId = `${channel.id}-${msg.authorIdentityId}` // msg.authorIdentityId
+            var conversationId = `${channel.id}-${msg.authorIdentityId}`
+            //var pairedConversationId = `${channel.id}-${res.message.inReplyToAuthorIdentityId}`
             var convoGroup = channel.messageList.find(o => o.conversationId == msg.authorIdentityId)
             if (convoGroup){
               let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
@@ -345,14 +349,16 @@ function pollNewMessages(){
               }
             }else{
               convoGroup = {
-                conversationId: msg.authorIdentityId,
+                conversationId: conversationId, //msg.authorIdentityId,
                 conversations: [item]
               }
               channel.messageList.unshift(convoGroup)
             }
           }else{ // outbound msg
-            threadId = msg.inReplyToAuthorIdentityId
-            var convoGroup = channel.messageList.find(o => o.conversationId == msg.inReplyToAuthorIdentityId)
+            threadId = threadId = `${channel.id}-${msg.inReplyToAuthorIdentityId}` //msg.authorIdentityId}`
+            //var conversationId = `${channel.id}-${msg.authorIdentityId}`
+            var pairedConversationId = `${channel.id}-${msg.inReplyToAuthorIdentityId}`
+            var convoGroup = channel.messageList.find(o => o.conversationId == pairedConversationId /*msg.inReplyToAuthorIdentityId*/)
             if (convoGroup){
               let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
               if (msgIndex >= 0){
@@ -362,7 +368,7 @@ function pollNewMessages(){
               }
             }else{
               convoGroup = {
-                conversationId: record.inReplyToAuthorIdentityId,
+                conversationId: conversationId, //record.inReplyToAuthorIdentityId,
                 conversations: [item]
               }
               channel.messageList.unshift(convoGroup)
@@ -531,7 +537,7 @@ function managePagination(channel){
 
 function createConversationsList(channel, totalMsg, newMsgCount, threadId){
   var html = ""
-  html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
+  html = `<div id='${channel.id}-all' class='recipient-item' onclick='showConversation("${channel.id}", "${channel.id}-all", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
   /* // No need to highlight for the "all" convo list!
   if (newMsgCount == 0)
     html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
@@ -593,10 +599,9 @@ function createConversationsList(channel, totalMsg, newMsgCount, threadId){
 
 function showConversation(channelId, selectedConvo, name, threadId){
   var channel = displayedChannels.find(o => o.id === channelId)
-
   $(`#${channel.currentSelectedItem}`).removeClass("active");
-
   $(`#${selectedConvo}`).addClass("active");
+
   if (selectedConvo == threadId){
     setTimeout(function(){
       $(`#indicator-${selectedConvo}`).removeClass("new-message-count");
@@ -609,7 +614,7 @@ function showConversation(channelId, selectedConvo, name, threadId){
     var html = '<div class="chat-container"><ul class="chat-box chatContainerScroll">'
     dateStr = ""
     //var totalMessage = 0
-    if (selectedConvo == `all-${channelId}`){
+    if (selectedConvo == `${channelId}-all`){
       $(`#message-input-${channel.id}`).hide()
       //conversationHeight = 50
       //setElementsHeight()

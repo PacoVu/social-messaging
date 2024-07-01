@@ -705,26 +705,28 @@ var engine = User.prototype = {
           inReplyToAuthorIdentityId: record.inReplyToAuthorIdentityId,
           channelId: record.channelId
         }
+        var conversationId = `${record.channelId}-${record.authorIdentityId}`
+        var pairedConversationId = `${record.channelId}-${record.inReplyToAuthorIdentityId}`
         if (record.status == "New" || record.status == "Ignored" || record.status == "Replied"){
           // inbound msg
-          var group = conversationGroups.find(o => o.conversationId == record.authorIdentityId /*record.threadId*/)
+          var group = conversationGroups.find(o => o.conversationId == conversationId /*record.authorIdentityId // record.threadId*/)
           if (group){
             group.conversations.push(item)
           }else{
             var newConvo = {
-              conversationId: record.authorIdentityId, //record.threadId,
+              conversationId:  conversationId, //record.authorIdentityId, //record.threadId,
               //conversationName: "",
               conversations: [item]
             }
             conversationGroups.push(newConvo)
           }
         }else{ // outbound msg
-          var group = conversationGroups.find(o => o.conversationId == record.inReplyToAuthorIdentityId /*record.threadId*/)
+          var group = conversationGroups.find(o => o.conversationId == pairedConversationId /*record.inReplyToAuthorIdentityId // record.threadId*/)
           if (group){
             group.conversations.push(item)
           }else{
             var newConvo = {
-              conversationId: record.inReplyToAuthorIdentityId, //record.threadId,
+              conversationId: pairedConversationId, // record.inReplyToAuthorIdentityId, //record.threadId,
               //conversationName: "",
               conversations: [item]
             }
