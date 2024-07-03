@@ -512,7 +512,6 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
-      console.log("pollNewMessages", this.newMessages)
       res.send({
           status: "ok",
           newMessages: this.newMessages
