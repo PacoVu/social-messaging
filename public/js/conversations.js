@@ -304,6 +304,7 @@ function sendTextMessage(channelId, message){
         var pairedConversationId = `${channel.id}-${res.message.inReplyToAuthorIdentityId}`
         var convoGroup = channel.messageList.find(o => o.conversationId === pairedConversationId /*res.message.inReplyToAuthorIdentityId*/)
         convoGroup.conversations.unshift(res.message)
+        console.log(res.message)
         processResult(channel, 0, 0)
       }else if (res.status == "error"){
         _alert(res.message, "Error")
@@ -339,7 +340,7 @@ function pollNewMessages(){
             threadId = `${channel.id}-${msg.authorIdentityId}` // msg.authorIdentityId
             var conversationId = `${channel.id}-${msg.authorIdentityId}`
             //var pairedConversationId = `${channel.id}-${res.message.inReplyToAuthorIdentityId}`
-            var convoGroup = channel.messageList.find(o => o.conversationId == msg.authorIdentityId)
+            var convoGroup = channel.messageList.find(o => o.conversationId == conversationId)
             if (convoGroup){
               let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
               if (msgIndex >= 0){
@@ -350,7 +351,7 @@ function pollNewMessages(){
             }else{
               convoGroup = {
                 conversationId: conversationId, //msg.authorIdentityId,
-                conversations: [item]
+                conversations: [msg]
               }
               channel.messageList.unshift(convoGroup)
             }
@@ -368,8 +369,8 @@ function pollNewMessages(){
               }
             }else{
               convoGroup = {
-                conversationId: conversationId, //record.inReplyToAuthorIdentityId,
-                conversations: [item]
+                conversationId: pairedConversationId, //record.inReplyToAuthorIdentityId,
+                conversations: [msg]
               }
               channel.messageList.unshift(convoGroup)
             }
@@ -496,6 +497,7 @@ function readMessageStore(channelId, token){
 
 // show inbound and outbound message count
 function processResult(channel, newMsgCount, threadId){
+  //console.log(channel.messageList)
   var totalInbound = 0
   var totalOutbound = 0
 
@@ -586,9 +588,9 @@ function createConversationsList(channel, totalMsg, newMsgCount, threadId){
         outboundCount++
     }
 
-    if (convoGroup.conversationId == threadId)
-      html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="new-message-count">${inboundCount}/${outboundCount}</span>`
-    else
+    //if (convoGroup.conversationId == threadId)
+    //  html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="new-message-count">${inboundCount}/${outboundCount}</span>`
+    //else
       html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="message-count">${inboundCount}/${outboundCount}</span>`
     html += "</div>"
   }
@@ -658,7 +660,7 @@ function showConversation(channelId, selectedConvo, name, threadId){
         $(`#message-input-${channel.id}`).hide()
       }else{
         if (channel.channelType == "WhatsApp"){
-          // Check convestion expiration
+          // Check conversation expiration
           var lastMsgTimestamp = 0
           for (var msg of convoGroup.conversations){
             if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
@@ -667,7 +669,6 @@ function showConversation(channelId, selectedConvo, name, threadId){
                 break
               //}
             }
-            html += createConversationItem(channel.id, msg, true)
           }
 
           let msgAge = new Date().getTime() - lastMsgTimestamp

@@ -512,7 +512,7 @@ var engine = User.prototype = {
       }
     },
     pollNewMessages: function(res){
-      //console.log("pollNewMessages", this.newMessages)
+      console.log("pollNewMessages", this.newMessages)
       res.send({
           status: "ok",
           newMessages: this.newMessages
@@ -1240,7 +1240,7 @@ var engine = User.prototype = {
     },
     processEventNotication: function(eventPayload){
       // Workaround solution
-      //console.log("notification payload", eventPayload.body)
+      console.log("notification payload", eventPayload.body)
       var contentId = eventPayload.body.resource.id
       this._readNotifiedMessage(contentId)
       return
@@ -1448,14 +1448,15 @@ var engine = User.prototype = {
       }
     },
     getAnswer: async function(message, res){
+      var question = `Provide the best short answer to the text between the triple dashes ---${message}---`
       var endpoint = '/v1/chat/completions'
       var bodyParams =
       {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4",
         messages: [
           {
             "role": "user",
-            "content": message
+            "content": question
           }
         ]
       }
