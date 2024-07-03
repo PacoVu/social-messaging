@@ -670,10 +670,11 @@ function showConversation(channelId, selectedConvo, name, threadId){
               //}
             }
           }
-
+          console.log(lastMsgTimestamp)
           let msgAge = new Date().getTime() - lastMsgTimestamp
-          console.log(msgAge)
-          if (msgAge >= 24 * 3600 * 1000){
+          let maxAge = 24 * 3600 * 1000
+          console.log(msgAge, maxAge)
+          if (msgAge >= maxAge){
             $(`#message-input-${channel.id}`).show()
             $(`#container-${channel.id}`).html("WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message.")
           }else{
@@ -732,6 +733,8 @@ function createConversationItem(channelId, item, conversation){
       line += `<div class="chat-text"><img src="${item.contentUri}"</img><br/>${msg}</div>`
     }else
       line += `<div class="chat-text">${msg}</div>`
+      if (conversation)
+        line += `<a href="#" class="chat-avatar" onclick="getAnswer('${channelId}', '${msg}')"><img src="/img/bot.png" style="width: 30px; height: 35px" /></a>`
   }
 
   line += '</li>'
