@@ -470,6 +470,8 @@ var engine = User.prototype = {
             }
           var resp = await p.post(endpoint, bodyParams)
           var jsonObj = await resp.json()
+          //var obj = resp.headers
+          //console.log("headers", obj)
           //console.log(jsonObj)
           var identity = this.identities.find( o => o.id == jsonObj.authorIdentityId)
           var agent = this.agentsList.find( o => o.userId == jsonObj.creatorId)

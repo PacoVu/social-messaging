@@ -190,6 +190,8 @@ function createChannelContainer(channel){
   .addClass(`message-input`)
   .appendTo(main);
 
+  enableMessageInput(channel.id)
+  /*
   var html = `<textarea id="send-text-${channel.id}" class="emojionearea-editor"/>`
   html += `<div id="container-${channel.id}" class="emojionearea-container"></div>`
   html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channel.id}', '')"/></div>`
@@ -199,8 +201,23 @@ function createChannelContainer(channel){
     container: $(`#container-${channel.id}`),
     searchPosition: "bottom"
   });
+  */
 }
 
+function enableMessageInput(channelId){
+  console.log("call")
+  var inputField = $(`#message-input-${channelId}`)
+
+  var html = `<textarea id="send-text-${channelId}" class="emojionearea-editor"/>`
+  html += `<div id="container-${channelId}" class="emojionearea-container"></div>`
+  html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channelId}', '')"/></div>`
+  inputField.html(html)
+
+  $(`#send-text-${channelId}`).emojioneArea({
+    container: $(`#container-${channelId}`),
+    searchPosition: "bottom"
+  });
+}
 
 function closeTab(channelId){
   var channel = $(`#main-${channelId}`)
@@ -665,20 +682,25 @@ function showConversation(channelId, selectedConvo, name, threadId){
           for (var msg of convoGroup.conversations){
             if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
               //if (msg.synchronizationStatus == "Success"){
-                lastMsgTimestamp = new Date(msg.creationTime)
+                lastMsgTimestamp = new Date(msg.creationTime).getTime()
                 break
               //}
             }
           }
-          console.log(lastMsgTimestamp)
           let msgAge = new Date().getTime() - lastMsgTimestamp
-          let maxAge = 24 * 3600 * 1000
+          let maxAge = 545343 //86400000 //24 * 3600 * 1000
           console.log(msgAge, maxAge)
           if (msgAge >= maxAge){
             $(`#message-input-${channel.id}`).show()
             $(`#container-${channel.id}`).html("WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message.")
           }else{
-            $(`#message-input-${channel.id}`).show()
+            //console.log($(`#container-${channel.id}`).html())
+            var blockedText = "WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message."
+            var currentText = $(`#container-${channel.id}`).html()
+            if (blockedText == currentText)
+              enableMessageInput(channel.id)
+            else
+              $(`#message-input-${channel.id}`).show()
           }
           // end
         }else
