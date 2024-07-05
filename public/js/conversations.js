@@ -688,7 +688,7 @@ function showConversation(channelId, selectedConvo, name, threadId){
             }
           }
           let msgAge = new Date().getTime() - lastMsgTimestamp
-          let maxAge = 545343 //86400000 //24 * 3600 * 1000
+          let maxAge = 86400000 //24 * 3600 * 1000
           console.log(msgAge, maxAge)
           if (msgAge >= maxAge){
             $(`#message-input-${channel.id}`).show()
