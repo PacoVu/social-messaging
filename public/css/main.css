@@ -511,21 +511,10 @@ button:focus {
 }
 
 .new-message-count {
-  color: #ffffff;
-  font-size: 0.8em;
+  color: #ff8800;
+  font-size: 1.0em;
   font-weight: bold;
-  min-width: 30px;
-  min-height: 30px;
-  text-align: center;
-  padding: 5px;
-  margin-top: -2px;
-  margin-left: 8px;
-  margin-right: -8px;
-  background-color: #ff8800;
-  border-radius: 25px;
-  border: 1px solid #ff8800;
-  display: inline;
-  /*float: right;*/
+  float: right;
 }
 
 .total-message-count {

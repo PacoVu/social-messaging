@@ -715,6 +715,8 @@ var engine = User.prototype = {
             group.conversations.push(item)
           }else{
             var newConvo = {
+              conversationStatus: "open",
+              newMsgCount: 0,
               conversationId:  conversationId, //record.authorIdentityId, //record.threadId,
               //conversationName: "",
               conversations: [item]
@@ -727,6 +729,8 @@ var engine = User.prototype = {
             group.conversations.push(item)
           }else{
             var newConvo = {
+              conversationStatus: "open",
+              newMsgCount: 0,
               conversationId: pairedConversationId, // record.inReplyToAuthorIdentityId, //record.threadId,
               //conversationName: "",
               conversations: [item]

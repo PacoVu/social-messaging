@@ -32,7 +32,6 @@ function init(){
   }else{
     console.log("No displayed channel")
   }
-
 }
 
 function addSelectedChannel(){
@@ -205,9 +204,7 @@ function createChannelContainer(channel){
 }
 
 function enableMessageInput(channelId){
-  console.log("call")
   var inputField = $(`#message-input-${channelId}`)
-
   var html = `<textarea id="send-text-${channelId}" class="emojionearea-editor"/>`
   html += `<div id="container-${channelId}" class="emojionearea-container"></div>`
   html += `<div><img class="send-btn" src="/img/send.png" onclick="sendTextMessage('${channelId}', '')"/></div>`
@@ -297,12 +294,23 @@ function openInitiateMessage(channelType, channelId, channelName){
 }
 
 function sendTextMessage(channelId, message){
+  var channel = displayedChannels.find(o => o.id === channelId)
+  var convoGroup = channel.messageList.find(o => o.conversationId === channel.currentSelectedItem)
+  if (convoGroup.conversationStatus == 'closed'){
+    if (channel.channelType == "WhatsApp"){
+      openInitiateMessage(channel.channelType, channelId, channel.name)
+      return
+    }
+  }
+
   if (message == ''){
     message = $(`#send-text-${channelId}`).val()
     $(`#send-text-${channelId}`).data("emojioneArea").setText('');
   }
+
   if (message == ""){
     $(`#send-text-${channelId}`).focus()
+    //$(`#send-text-${channelId}`).attr("placeholder", "Enter message here");
     return _alert("Please enter text message!")
   }
   var channel = displayedChannels.find(o => o.id === channelId)
@@ -322,7 +330,7 @@ function sendTextMessage(channelId, message){
         var convoGroup = channel.messageList.find(o => o.conversationId === pairedConversationId /*res.message.inReplyToAuthorIdentityId*/)
         convoGroup.conversations.unshift(res.message)
         console.log(res.message)
-        processResult(channel, 0, 0)
+        processResult(channel, 0)
       }else if (res.status == "error"){
         _alert(res.message, "Error")
       }else{
@@ -359,6 +367,8 @@ function pollNewMessages(){
             //var pairedConversationId = `${channel.id}-${res.message.inReplyToAuthorIdentityId}`
             var convoGroup = channel.messageList.find(o => o.conversationId == conversationId)
             if (convoGroup){
+              convoGroup.newMsgCount += 1
+              convoGroup.conversationStatus = "open"
               let msgIndex = convoGroup.conversations.findIndex(o => o.id === msg.id)
               if (msgIndex >= 0){
                   convoGroup.conversations[msgIndex] = msg
@@ -367,6 +377,8 @@ function pollNewMessages(){
               }
             }else{
               convoGroup = {
+                newMsgCount: 1,
+                conversationStatus: "open",
                 conversationId: conversationId, //msg.authorIdentityId,
                 conversations: [msg]
               }
@@ -393,7 +405,7 @@ function pollNewMessages(){
             }
           }
           if (res.newMessages.length)
-            processResult(channel, res.newMessages.length, threadId)
+            processResult(channel, threadId)
         }else{
             var channel = $(`#my-channels option[value="${msg.channelId}"]`)
             if (channel){
@@ -488,7 +500,7 @@ function readMessageStore(channelId, token){
         }
         //var index = channel.pageTokens.findIndex(o => o === token)
       }
-      processResult(channel, 0, 0)
+      processResult(channel, 0)
       // closed until notification payload issues are fixed
       pollingTimer = window.setTimeout(function(){
         pollNewMessages()
@@ -513,7 +525,7 @@ function readMessageStore(channelId, token){
 }
 
 // show inbound and outbound message count
-function processResult(channel, newMsgCount, threadId){
+function processResult(channel, threadId){
   //console.log(channel.messageList)
   var totalInbound = 0
   var totalOutbound = 0
@@ -523,7 +535,7 @@ function processResult(channel, newMsgCount, threadId){
     totalMsg += message.conversations.length
   }
 
-  createConversationsList(channel, totalMsg, newMsgCount, threadId)
+  createConversationsList(channel, totalMsg, threadId)
   //console.log("pageTokens", channel.pageTokens)
   //managePagination(channel)
 }
@@ -554,9 +566,9 @@ function managePagination(channel){
   }
 }
 
-function createConversationsList(channel, totalMsg, newMsgCount, threadId){
+function createConversationsList(channel, totalMsg, threadId){
   var html = ""
-  html = `<div id='${channel.id}-all' class='recipient-item' onclick='showConversation("${channel.id}", "${channel.id}-all", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
+  html = `<div id='${channel.id}-all' class='recipient-item' onclick='showConversation("${channel.id}", "${channel.id}-all", "")'><span class="recipient-info">All conversations</span><span class="message-count">${totalMsg}</span></div>`
   /* // No need to highlight for the "all" convo list!
   if (newMsgCount == 0)
     html = `<div id='all-${channel.id}' class='recipient-item' onclick='showConversation("${channel.id}", "all-${channel.id}", "")'><div class="recipient-info">All conversations</div><div class="message-count">${totalMsg}</div></div>`
@@ -608,10 +620,15 @@ function createConversationsList(channel, totalMsg, newMsgCount, threadId){
     //if (convoGroup.conversationId == threadId)
     //  html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="new-message-count">${inboundCount}/${outboundCount}</span>`
     //else
-      html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="message-count">${inboundCount}/${outboundCount}</span>`
+    html += `<span class="recipient-info">${name}</span><span id='indicator-${convoGroup.conversationId}' class="message-count">${inboundCount}/${outboundCount}</span>`
+    if (convoGroup.newMsgCount > 0 && convoGroup.conversationId == threadId){
+      console.log("compare", `${convoGroup.conversationId} == ${threadId}`)
+      console.log("Has new message")
+      html += `<span id="newmsg-${convoGroup.conversationId}" class="new-message-count">+${convoGroup.newMsgCount}</span>`
+    }
     html += "</div>"
   }
-
+  //console.log(html)
   $(`#recipient-list-${channel.id}`).html(html)
   showConversation(channel.id, channel.currentSelectedItem, name, threadId)
 }
@@ -621,12 +638,13 @@ function showConversation(channelId, selectedConvo, name, threadId){
   $(`#${channel.currentSelectedItem}`).removeClass("active");
   $(`#${selectedConvo}`).addClass("active");
 
-  if (selectedConvo == threadId){
+  // reset new count if any
+  if ($(`#newmsg-${selectedConvo}`)){
     setTimeout(function(){
-      $(`#indicator-${selectedConvo}`).removeClass("new-message-count");
-      $(`#indicator-${selectedConvo}`).addClass("message-count");
+      $(`#newmsg-${selectedConvo}`).remove()
     }, 3000)
   }
+
   channel.currentSelectedItem = selectedConvo
 
   if (channel.messageList.length){
@@ -659,55 +677,53 @@ function showConversation(channelId, selectedConvo, name, threadId){
       //$(`#message-input-${channel.id}`).prop('disabled', false); //show()
       var title = `<span>${name}</span>`
       //$("#conversation-title").html(title)
-
+      $(`#message-input-${channel.id}`).show()
       var convoGroup = channel.messageList.find(o => o.conversationId === selectedConvo)
       if (!convoGroup){
         convoGroup = channel.messageList[0]
       }
+      if (channel.channelType == "WhatsApp"){
+        // Check conversation expiration
+        var lastMsgTimestamp = 0
+        for (var msg of convoGroup.conversations){
+          if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
+            lastMsgTimestamp = new Date(msg.creationTime).getTime()
+            break
+          }
+        }
+        let msgAge = new Date().getTime() - lastMsgTimestamp
+        let maxAge = 86400000 //24 * 3600 * 1000
+        if (msgAge >= maxAge){
+          convoGroup.conversationStatus = "closed"
+          //$(`#message-input-${channel.id}`).show()
+          $(`#container-${channel.id}`).html("WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message.")
+        }else{
+          //console.log($(`#container-${channel.id}`).html())
+          //var blockedText = "WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message."
+          //var currentText = $(`#container-${channel.id}`).html()
+          //if (blockedText == currentText)
+            enableMessageInput(channel.id)
+          //else
+          //  $(`#message-input-${channel.id}`).show()
+        }
+        // end
+      }//else
+      //  $(`#message-input-${channel.id}`).show()
+      convoGroup.newMsgCount = 0
       var maxLen = convoGroup.conversations.length - 1
       for (var i=maxLen; i>=0; i--){
         var msg = convoGroup.conversations[i]
         if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
           channel.params.to = msg.id
         }
-        html += createConversationItem(channel.id, msg, true)
+        var conversation = (convoGroup.conversationStatus == 'open') ? true : false
+        html += createConversationItem(channel.id, msg, conversation)
       }
       if (channel.params.to == ""){
         // disable the input for now. Should be enable for initiating a new message!
         $(`#message-input-${channel.id}`).hide()
-      }else{
-        if (channel.channelType == "WhatsApp"){
-          // Check conversation expiration
-          var lastMsgTimestamp = 0
-          for (var msg of convoGroup.conversations){
-            if (msg.status == "New" || msg.status == "Ignored" || msg.status == "Replied"){
-              //if (msg.synchronizationStatus == "Success"){
-                lastMsgTimestamp = new Date(msg.creationTime).getTime()
-                break
-              //}
-            }
-          }
-          let msgAge = new Date().getTime() - lastMsgTimestamp
-          let maxAge = 86400000 //24 * 3600 * 1000
-          console.log(msgAge, maxAge)
-          if (msgAge >= maxAge){
-            $(`#message-input-${channel.id}`).show()
-            $(`#container-${channel.id}`).html("WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message.")
-          }else{
-            //console.log($(`#container-${channel.id}`).html())
-            var blockedText = "WhatsApp does not allow replying messages to a user 24 hours after they last messaged you. You can however send a new templated message."
-            var currentText = $(`#container-${channel.id}`).html()
-            if (blockedText == currentText)
-              enableMessageInput(channel.id)
-            else
-              $(`#message-input-${channel.id}`).show()
-          }
-          // end
-        }else
-          $(`#message-input-${channel.id}`).show()
       }
     }
-    //$("#total").html(`${totalMessage} messages`)
     html += "</ul></div>"
 
     $(`#conversation-${channel.id}`).html(html)
