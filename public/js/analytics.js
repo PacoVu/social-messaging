@@ -246,26 +246,7 @@ function convertMonth(month){
 
 function showRateInfo(type){
   var infoText = [
-    "<p>Response rate is the percentage ratio of inbound messages over successfully delivered outbound messages. High response rate is the good health of your \
-    high volume SMS phone number. Especially, when you start using your phone number for the first time, high response rate would \
-    help warm up your phone number reputation. As a result, it would help prevent mobile carriers from blocking your text messages.</p>\
-    <br><b>Best practices to increase and maintain high response rate:</b>\
-    <ul><li>Start your text messaging campaign by sending a brief message to ask if your customers would like to learn more about your sale or promo. \
-    E.g. 'Reply YES for more info'. Treat the first message as an opt-in or opt-out choice for your customer.</li>\
-    <li>Break a lengthy text message into multi-section messages, then send a brief message with response choices to receive the next messages.</li>\
-    <li>If you send text messages to your customers repeatedly over a long period of time without requesting for response, send a survey message to \
-    the customers periodically, to ask if they still want to receive your text messages.</li></ul>",
-    "<p>Delivery rate is the percentage ratio of successfully delivered message over delivery failed messages. The higher delivery rate the better!</p>\
-    <br><b>Here is a few tips for how to increase the delivery rate:</b>\
-    <ul><li>Make sure your recipient phone number is in a correct format (E.164) with a country code followed by the area code and the local number without space, bracket or hyphen symbols.</li>\
-    <li>Remove landline and invalid phone numbers from your recipient list as much as you can.</li>\
-    <li>Download your campaign's report, copy the recipient phone number from any failed messages and remove them from your recipient list after sending every campaign.</li>\
-    <li>Regularly, read opted-out numbers and remove them from your recipient list.</li>",
-    "<p>Cost efficiency rate is calculated from the cost of successfully delivered messages and the cost of undeliverable messages. Keeping the cost \
-    efficiency at a high rate will help you maximize the value of your text messaging spending.</p>\
-    <br><b>Here is a few tips for how to increase cost efficiency rate:</b>\
-    <ul><li>Regularly, read opted-out numbers and remove them from your recipient list.</li>\
-    <li>Learn from your previous campaigns to avoid or to minimize the numbers of 'DeliveryFailed' incidents by modifying your message content if the message was flagged as spam content, or removing those recipients' phone number from the recipient list of your next campaigns.</li></ul>"
+    "<p>Response rate is the percentage ratio of inbound messages over successfully delivered outbound messages.</p>"
   ]
   var title = [
     "Response rate",

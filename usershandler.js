@@ -1245,7 +1245,7 @@ var engine = User.prototype = {
     },
     processEventNotication: function(eventPayload){
       // Workaround solution
-      console.log("notification payload", eventPayload.body)
+      //console.log("notification payload", eventPayload.body)
       var contentId = eventPayload.body.resource.id
       this._readNotifiedMessage(contentId)
       return
